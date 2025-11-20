@@ -1,4 +1,6 @@
-FROM node:18-alpine
+FROM node:20-alpine
+
+ENV HOSTNAME="0.0.0.0"
 
 WORKDIR /app
 
