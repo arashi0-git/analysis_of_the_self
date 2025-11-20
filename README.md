@@ -1,0 +1,2 @@
+# analysis_of_the_self
+就活の自己分析をAIでRAG使って自分の情報を考慮しながら回答できるように
