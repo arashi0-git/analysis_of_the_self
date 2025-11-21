@@ -47,10 +47,16 @@ def create_memo(memo: schemas.MemoCreate, db: Session = Depends(get_db)):  # noq
             input=memo.text, model="text-embedding-3-small"
         )
         embedding = response.data[0].embedding
-    except Exception as e:
+    except openai.APIStatusError as exc:
         raise HTTPException(
-            status_code=500, detail=f"OpenAI API Error: {str(e)}"
-        ) from e
+            status_code=exc.status_code,
+            detail=f"OpenAI API Error: {exc!s}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"OpenAI API Error: {exc!s}",
+        ) from exc
 
     # 3. Save to DB
     crud.create_rag_embedding(db, user.id, memo.text, embedding, source_type="memo")
