@@ -8,19 +8,23 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    env_file:
+      - .env
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8001
+      - API_INTERNAL_URL=http://backend:8000
     depends_on:
       - backend
 
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       - ./backend:/app
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/analysis_db
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - db
@@ -28,11 +32,9 @@ services:
   db:
     image: ankane/pgvector
     ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=analysis_db
+      - "5433:5432"
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
