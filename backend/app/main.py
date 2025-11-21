@@ -28,7 +28,7 @@ app.add_middleware(
 )
 
 # OpenAI Client
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 @app.get("/health")
@@ -43,7 +43,7 @@ def create_memo(memo: schemas.MemoCreate, db: Session = Depends(get_db)):  # noq
 
     # 2. Generate Embedding
     try:
-        response = openai.embeddings.create(
+        response = client.embeddings.create(
             input=memo.text, model="text-embedding-3-small"
         )
         embedding = response.data[0].embedding
