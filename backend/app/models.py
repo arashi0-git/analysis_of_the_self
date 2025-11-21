@@ -1,7 +1,16 @@
 import uuid
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import ARRAY, Boolean, Column, DateTime, ForeignKey, Integer, Text
+from sqlalchemy import (
+    ARRAY,
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -13,7 +22,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = Column(Text)
+    name = Column(Text, nullable=False)
     email = Column(Text, unique=True, nullable=False)
     university = Column(Text)
     major = Column(Text)
@@ -50,17 +59,17 @@ class LifeEvent(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-    age = Column(Integer)
-    school_year = Column(Text)
-    category = Column(Text)
-    title = Column(Text)
+    age = Column(Integer, CheckConstraint("age >= 0"))
+    school_year = Column(Text, nullable=False)
+    category = Column(Text, nullable=False)
+    title = Column(Text, nullable=False)
     description = Column(Text)
     context = Column(Text)
     action = Column(Text)
     result = Column(Text)
     learned = Column(Text)
     emotion = Column(Text)
-    impact_level = Column(Integer)
+    impact_level = Column(Integer, CheckConstraint("impact_level >= 0"))
     tags = Column(ARRAY(Text))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -72,15 +81,17 @@ class Episode(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-    title = Column(Text)
-    purpose = Column(Text)
-    situation = Column(Text)
-    task = Column(Text)
-    action = Column(Text)
-    result = Column(Text)
+    title = Column(Text, nullable=False)
+    purpose = Column(Text, nullable=False)
+    situation = Column(Text, nullable=False)
+    task = Column(Text, nullable=False)
+    action = Column(Text, nullable=False)
+    result = Column(Text, nullable=False)
     learning = Column(Text)
     life_event_ids = Column(ARRAY(UUID(as_uuid=True)))
-    confidence = Column(Integer)
+    confidence = Column(
+        Integer, CheckConstraint("confidence >= 0 AND confidence <= 100")
+    )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="episodes")
@@ -91,10 +102,12 @@ class Strength(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-    name = Column(Text)
+    name = Column(Text, nullable=False)
     description = Column(Text)
     evidence_episode_ids = Column(ARRAY(UUID(as_uuid=True)))
-    consistency_score = Column(Integer)
+    consistency_score = Column(
+        Integer, CheckConstraint("consistency_score >= 0 AND consistency_score <= 100")
+    )
     ai_generated = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -106,9 +119,9 @@ class ValueAxis(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-    name = Column(Text)
+    name = Column(Text, nullable=False)
     description = Column(Text)
-    priority = Column(Integer)
+    priority = Column(Integer, CheckConstraint("priority >= 0"))
     evidence_episode_ids = Column(ARRAY(UUID(as_uuid=True)))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -138,8 +151,8 @@ class AILog(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-    request_text = Column(Text)
-    ai_output_text = Column(Text)
+    request_text = Column(Text, nullable=False)
+    ai_output_text = Column(Text, nullable=False)
     referenced_episode_ids = Column(ARRAY(UUID(as_uuid=True)))
     referenced_strength_ids = Column(ARRAY(UUID(as_uuid=True)))
     need_more_info = Column(Boolean, default=False)
@@ -154,8 +167,8 @@ class ChatLog(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-    user_message = Column(Text)
-    ai_message = Column(Text)
+    user_message = Column(Text, nullable=False)
+    ai_message = Column(Text, nullable=False)
     used_episode_ids = Column(ARRAY(UUID(as_uuid=True)))
     used_insight_ids = Column(ARRAY(UUID(as_uuid=True)))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -168,10 +181,14 @@ class RagEmbedding(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
-    source_type = Column(Text)
-    source_id = Column(UUID(as_uuid=True))
-    embedding = Column(Vector(1536))
-    content = Column(Text)
+    source_type = Column(
+        Text,
+        CheckConstraint("source_type IN ('episode', 'insight', 'strength', 'memo')"),
+        nullable=False,
+    )
+    source_id = Column(UUID(as_uuid=True), nullable=True)
+    embedding = Column(Vector(1536), nullable=False)
+    content = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="rag_embeddings")
