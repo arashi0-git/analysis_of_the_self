@@ -1,23 +1,64 @@
-from fastapi import FastAPI
+import os
+
+import openai
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
-app = FastAPI(title="Analysis of the Self API")
+from . import crud, schemas
+from .database import get_db
 
-# CORS設定（開発環境用）
+# Create tables (safe for dev)
+# models.Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
+
+# CORS setup
+origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.jsのデフォルトポート
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-@app.get("/")
-def read_root():
-    return {"message": "Hello World from FastAPI"}
+# OpenAI Client
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 @app.get("/health")
-def health_check():
+def read_health():
     return {"status": "ok"}
+
+
+@app.post("/memos")
+def create_memo(memo: schemas.MemoCreate, db: Session = Depends(get_db)):  # noqa: B008
+    # 1. Get default user
+    user = crud.get_or_create_default_user(db)
+
+    # 2. Generate Embedding
+    try:
+        response = client.embeddings.create(
+            input=memo.text, model="text-embedding-3-small"
+        )
+        embedding = response.data[0].embedding
+    except openai.APIStatusError as exc:
+        raise HTTPException(
+            status_code=exc.status_code,
+            detail=f"OpenAI API Error: {exc!s}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"OpenAI API Error: {exc!s}",
+        ) from exc
+
+    # 3. Save to DB
+    crud.create_rag_embedding(db, user.id, memo.text, embedding, source_type="memo")
+
+    return {"status": "success", "message": "Memo saved successfully"}
