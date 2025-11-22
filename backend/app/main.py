@@ -48,8 +48,10 @@ def create_memo(memo: schemas.MemoCreate, db: Session = Depends(get_db)):  # noq
         )
         embedding = response.data[0].embedding
     except openai.APIStatusError as exc:
+        # External API error should be 503 Service Unavailable (or 500)
+        # Do not expose 401/403 from OpenAI to the client
         raise HTTPException(
-            status_code=exc.status_code,
+            status_code=503,
             detail=f"OpenAI API Error: {exc!s}",
         ) from exc
     except Exception as exc:
