@@ -10,15 +10,19 @@ export interface Message {
 }
 
 interface ChatWindowProps {
-  initialMessages?: Message[];
-  onSendMessage?: (message: string) => Promise<void>; // Optional for now, will be used for API integration
+  messages?: Message[];
+  setMessages?: React.Dispatch<React.SetStateAction<Message[]>>;
+  onSendMessage?: (message: string) => Promise<void>;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
-  initialMessages = [],
+  messages: externalMessages,
+  setMessages: externalSetMessages,
   onSendMessage,
 }) => {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [internalMessages, setInternalMessages] = useState<Message[]>([]);
+  const messages = externalMessages ?? internalMessages;
+  const setMessages = externalSetMessages ?? setInternalMessages;
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +47,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     try {
       if (onSendMessage) {
         await onSendMessage(text);
+        setIsLoading(false);
       } else {
         // Mock response for UI testing if no handler provided
         setTimeout(() => {
