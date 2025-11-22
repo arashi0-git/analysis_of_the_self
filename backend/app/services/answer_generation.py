@@ -66,10 +66,4 @@ def generate_answer(
         system_instruction=system_instruction,
     )
 
-    # Filter referenced_memo_ids to ensure they exist in our search results
-    # (LLM might hallucinate IDs or use indices, so we map back if possible,
-    # but for now we trust the LLM to output valid UUIDs if we provided them in context?
-    # Actually, we didn't provide UUIDs in the context string above.
-    # We should fix that.)
-
     return response
