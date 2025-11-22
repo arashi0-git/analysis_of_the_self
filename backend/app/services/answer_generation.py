@@ -31,6 +31,13 @@ def generate_answer(
         db, query_vec, limit=5, similarity_threshold=0.3
     )
 
+    if not search_results:
+        return schemas.GeneratedAnswer(
+            reasoning="関連するメモが見つかりませんでした。",
+            answer_text="申し訳ありませんが、あなたの質問に関連する過去のメモや記録が見つかりませんでした。",
+            referenced_memo_ids=[],
+        )
+
     # 3. Construct Prompt
     context_str = ""
     for result in search_results:

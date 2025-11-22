@@ -1,10 +1,10 @@
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class MemoCreate(BaseModel):
-    text: str
+    text: str = Field(..., min_length=1, description="Memo content cannot be empty")
 
 
 class SearchResult(BaseModel):
@@ -21,4 +21,4 @@ class GeneratedAnswer(BaseModel):
 
 
 class AnswerRequest(BaseModel):
-    query_text: str
+    query_text: str = Field(..., min_length=1, description="Query cannot be empty")
