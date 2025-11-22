@@ -10,15 +10,19 @@ export interface Message {
 }
 
 interface ChatWindowProps {
-  initialMessages?: Message[];
-  onSendMessage?: (message: string) => Promise<void>; // Optional for now, will be used for API integration
+  messages?: Message[];
+  setMessages?: React.Dispatch<React.SetStateAction<Message[]>>;
+  onSendMessage?: (message: string) => Promise<void>;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
-  initialMessages = [],
+  messages: externalMessages,
+  setMessages: externalSetMessages,
   onSendMessage,
 }) => {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [internalMessages, setInternalMessages] = useState<Message[]>([]);
+  const messages = externalMessages ?? internalMessages;
+  const setMessages = externalSetMessages ?? setInternalMessages;
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +36,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   const handleSend = async (text: string) => {
     const userMessage: Message = {
-      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       role: "user",
       content: text,
     };
@@ -43,11 +47,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     try {
       if (onSendMessage) {
         await onSendMessage(text);
+        setIsLoading(false);
       } else {
         // Mock response for UI testing if no handler provided
         setTimeout(() => {
           const aiMessage: Message = {
-            id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `ai-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
             role: "ai",
             content: `Echo: ${text}`,
             reasoning: "This is a mock reasoning process.",
