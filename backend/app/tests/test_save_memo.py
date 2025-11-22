@@ -2,6 +2,8 @@ from unittest.mock import MagicMock, patch
 
 from app import models
 
+TEST_USER_EMAIL = "user@example.com"
+
 
 def test_create_memo_success(client, db_session):
     """
@@ -29,9 +31,11 @@ def test_create_memo_success(client, db_session):
 
         # Verify DB content
         # 1. User should exist
+        # Note: The user is automatically created by the API if it doesn't exist.
+        # This behavior is defined in crud.get_or_create_default_user.
         user = (
             db_session.query(models.User)
-            .filter(models.User.email == "user@example.com")
+            .filter(models.User.email == TEST_USER_EMAIL)
             .first()
         )
         assert user is not None
@@ -53,6 +57,7 @@ def test_create_memo_success(client, db_session):
 def test_create_memo_openai_error(client):
     """
     Test handling of OpenAI API errors.
+    External API errors should be wrapped in 5xx (e.g., 503 Service Unavailable).
     """
     import openai
 
@@ -67,5 +72,6 @@ def test_create_memo_openai_error(client):
 
         response = client.post("/memos", json={"text": "This will fail."})
 
-        assert response.status_code == 401
-        assert "Unauthorized" in response.json()["detail"]
+        # Should return 503 Service Unavailable (or 500) instead of 401
+        assert response.status_code == 503
+        assert "OpenAI API Error" in response.json()["detail"]
