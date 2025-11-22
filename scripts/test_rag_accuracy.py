@@ -20,7 +20,7 @@ def main():
         "私の強みは、粘り強さと論理的思考力です。"
         "大学時代はプログラミングサークルで活動し、Pythonを使ってWebアプリを開発しました。"
     )
-    response = requests.post(f"{BASE_URL}/memos", json={"text": memo_text})
+    response = requests.post(f"{BASE_URL}/memos", json={"text": memo_text}, timeout=10)
 
     if response.status_code == 200:
         print("Memo created successfully.")
@@ -34,7 +34,9 @@ def main():
     print_step("2. Asking Question")
 
     query_text = "私の強みは何ですか？"
-    response = requests.post(f"{BASE_URL}/answer", json={"query_text": query_text})
+    response = requests.post(
+        f"{BASE_URL}/answer", json={"query_text": query_text}, timeout=10
+    )
 
     if response.status_code == 200:
         print("Answer generated successfully.")

@@ -32,7 +32,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
   const handleSend = async (text: string) => {
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       role: "user",
       content: text,
     };
@@ -47,7 +47,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         // Mock response for UI testing if no handler provided
         setTimeout(() => {
           const aiMessage: Message = {
-            id: (Date.now() + 1).toString(),
+            id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             role: "ai",
             content: `Echo: ${text}`,
             reasoning: "This is a mock reasoning process.",
