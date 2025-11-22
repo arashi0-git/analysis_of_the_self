@@ -6,11 +6,12 @@ import { generateAnswer } from "@/lib/api";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [pendingRequestId, setPendingRequestId] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSendMessage = async (text: string) => {
+    if (isLoading) return;
+    setIsLoading(true);
     const requestId = Date.now();
-    setPendingRequestId(requestId);
 
     // ユーザーメッセージを追加
     const userMessage: Message = {
@@ -41,6 +42,8 @@ export default function ChatPage() {
         reasoning: error instanceof Error ? error.message : "Unknown error",
       };
       setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,6 +57,7 @@ export default function ChatPage() {
           messages={messages}
           setMessages={setMessages}
           onSendMessage={handleSendMessage}
+          isLoading={isLoading}
         />
       </main>
     </div>
