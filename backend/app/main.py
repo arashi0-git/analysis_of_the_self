@@ -1,6 +1,5 @@
-import os
-
 import openai
+from app.core.openai import client
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -26,9 +25,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# OpenAI Client
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 @app.get("/health")
