@@ -13,17 +13,20 @@ interface ChatWindowProps {
   messages?: Message[];
   setMessages?: React.Dispatch<React.SetStateAction<Message[]>>;
   onSendMessage?: (message: string) => Promise<void>;
+  isLoading?: boolean;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   messages: externalMessages,
   setMessages: externalSetMessages,
   onSendMessage,
+  isLoading: externalIsLoading,
 }) => {
   const [internalMessages, setInternalMessages] = useState<Message[]>([]);
   const messages = externalMessages ?? internalMessages;
   const setMessages = externalSetMessages ?? setInternalMessages;
-  const [isLoading, setIsLoading] = useState(false);
+  const [internalIsLoading, setInternalIsLoading] = useState(false);
+  const isLoading = externalIsLoading ?? internalIsLoading;
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -35,19 +38,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   }, [messages]);
 
   const handleSend = async (text: string) => {
-    const userMessage: Message = {
-      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-      role: "user",
-      content: text,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
     try {
       if (onSendMessage) {
         await onSendMessage(text);
-        setIsLoading(false);
       } else {
         // Mock response for UI testing if no handler provided
         setTimeout(() => {
@@ -58,12 +51,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             reasoning: "This is a mock reasoning process.",
           };
           setMessages((prev) => [...prev, aiMessage]);
-          setIsLoading(false);
         }, 1000);
       }
     } catch (error) {
       console.error("Failed to send message:", error);
-      setIsLoading(false);
     }
   };
 
