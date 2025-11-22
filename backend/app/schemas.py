@@ -12,3 +12,13 @@ class SearchResult(BaseModel):
     content: str
     source_type: str
     similarity: float
+
+
+class GeneratedAnswer(BaseModel):
+    reasoning: str
+    answer_text: str
+    referenced_memo_ids: list[UUID]
+
+
+class AnswerRequest(BaseModel):
+    query_text: str

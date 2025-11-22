@@ -1,7 +1,4 @@
-import os
-
-import openai
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -27,9 +24,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# OpenAI Client
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 
 @app.get("/health")
 def read_health():
@@ -42,25 +36,18 @@ def create_memo(memo: schemas.MemoCreate, db: Session = Depends(get_db)):  # noq
     user = crud.get_or_create_default_user(db)
 
     # 2. Generate Embedding
-    try:
-        response = client.embeddings.create(
-            input=memo.text, model="text-embedding-3-small"
-        )
-        embedding = response.data[0].embedding
-    except openai.APIStatusError as exc:
-        # External API error should be 503 Service Unavailable (or 500)
-        # Do not expose 401/403 from OpenAI to the client
-        raise HTTPException(
-            status_code=503,
-            detail=f"OpenAI API Error: {exc!s}",
-        ) from exc
-    except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"OpenAI API Error: {exc!s}",
-        ) from exc
+    from app.services.embedding import get_embedding
+
+    embedding = get_embedding(memo.text)
 
     # 3. Save to DB
     crud.create_rag_embedding(db, user.id, memo.text, embedding, source_type="memo")
 
     return {"status": "success", "message": "Memo saved successfully"}
+
+
+@app.post("/answer", response_model=schemas.GeneratedAnswer)
+def generate_answer(request: schemas.AnswerRequest, db: Session = Depends(get_db)):  # noqa: B008
+    from app.services.answer_generation import generate_answer
+
+    return generate_answer(db, request.query_text)
