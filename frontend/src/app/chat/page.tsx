@@ -23,40 +23,24 @@ export default function ChatPage() {
     try {
       const result = await generateAnswer(text);
 
-      // 最新のリクエストのみ処理（古いレスポンスを無視）
-      setPendingRequestId((currentId) => {
-        if (requestId < currentId) {
-          return currentId; // より新しいリクエストがあるため無視
-        }
-
-        const aiMessage: Message = {
-          id: `ai-${requestId}-${Math.random().toString(36).substring(2, 11)}`,
-          role: "ai",
-          content: result.answer_text,
-          reasoning: result.reasoning,
-        };
-
-        setMessages((prev) => [...prev, aiMessage]);
-        return currentId;
-      });
+      // AIメッセージを追加
+      const aiMessage: Message = {
+        id: `ai-${requestId}-${Math.random().toString(36).substring(2, 11)}`,
+        role: "ai",
+        content: result.answer_text,
+        reasoning: result.reasoning,
+      };
+      setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error("Failed to generate answer:", error);
 
-      // エラーの場合も最新のリクエストのみ処理
-      setPendingRequestId((currentId) => {
-        if (requestId < currentId) {
-          return currentId;
-        }
-
-        const errorMessage: Message = {
-          id: `error-${requestId}-${Math.random().toString(36).substring(2, 11)}`,
-          role: "ai",
-          content: "申し訳ありません。回答の生成中にエラーが発生しました。",
-          reasoning: error instanceof Error ? error.message : "Unknown error",
-        };
-        setMessages((prev) => [...prev, errorMessage]);
-        return currentId;
-      });
+      const errorMessage: Message = {
+        id: `error-${requestId}-${Math.random().toString(36).substring(2, 11)}`,
+        role: "ai",
+        content: "申し訳ありません。回答の生成中にエラーが発生しました。",
+        reasoning: error instanceof Error ? error.message : "Unknown error",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     }
   };
 
