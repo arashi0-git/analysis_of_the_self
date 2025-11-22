@@ -12,6 +12,14 @@ export default function ChatPage() {
     const requestId = Date.now();
     setPendingRequestId(requestId);
 
+    // ユーザーメッセージを追加
+    const userMessage: Message = {
+      id: `user-${requestId}-${Math.random().toString(36).substring(2, 11)}`,
+      role: "user",
+      content: text,
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
     try {
       const result = await generateAnswer(text);
 

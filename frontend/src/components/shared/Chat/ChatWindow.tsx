@@ -35,13 +35,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   }, [messages]);
 
   const handleSend = async (text: string) => {
-    const userMessage: Message = {
-      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-      role: "user",
-      content: text,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
