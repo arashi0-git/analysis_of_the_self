@@ -11,20 +11,44 @@ export interface AnswerRequest {
 }
 
 export async function generateAnswer(query: string): Promise<GeneratedAnswer> {
-  const response = await fetch(`${API_BASE_URL}/answer`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ query_text: query } as AnswerRequest),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒のタイムアウト
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to generate answer: ${response.status} ${errorText}`,
-    );
+  try {
+    const response = await fetch(`${API_BASE_URL}/answer`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query_text: query } as AnswerRequest),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to generate answer: ${response.status} ${errorText}`,
+      );
+    }
+
+    const data = await response.json();
+
+    // レスポンスの基本的な検証
+    if (
+      !data ||
+      typeof data.answer_text !== "string" ||
+      typeof data.reasoning !== "string"
+    ) {
+      throw new Error("Invalid response format from server");
+    }
+
+    return data as GeneratedAnswer;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("Request timeout: The server took too long to respond");
+    }
+    throw error;
   }
-
-  return response.json();
 }
