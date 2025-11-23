@@ -97,8 +97,13 @@ def create_user_answer(
 
 
 def get_user_answers(db: Session, user_id: uuid.UUID):
+    from sqlalchemy.orm import joinedload
+
     return (
-        db.query(models.UserAnswer).filter(models.UserAnswer.user_id == user_id).all()
+        db.query(models.UserAnswer)
+        .options(joinedload(models.UserAnswer.question))
+        .filter(models.UserAnswer.user_id == user_id)
+        .all()
     )
 
 

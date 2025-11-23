@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 
 from app import crud, schemas
@@ -7,6 +8,8 @@ from app.prompts.analysis_prompts import (
 )
 from app.services.llm import generate_structured_response
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 
 def analyze_user_answers(user_id: UUID, db: Session) -> schemas.AnalysisResult:
@@ -60,6 +63,14 @@ def run_analysis_background(user_id: UUID):
 
     db = SessionLocal()
     try:
-        analyze_user_answers(user_id, db)
+        logger.info(f"Starting analysis for user_id={user_id}")
+        result = analyze_user_answers(user_id, db)
+        if result is None:
+            logger.warning(f"No answers found for user_id={user_id}")
+        else:
+            logger.info(f"Analysis completed for user_id={user_id}")
+    except Exception as e:
+        logger.exception(f"Analysis failed for user_id={user_id}: {e}")
+        # Consider: store error state in DB for user notification
     finally:
         db.close()
