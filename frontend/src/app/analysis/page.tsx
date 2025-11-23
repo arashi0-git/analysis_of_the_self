@@ -22,11 +22,11 @@ export default function AnalysisPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchAnalysis = async () => {
+    const fetchAnalysis = async (retryCount = 0) => {
       try {
-        // For MVP, using a hardcoded user ID
+        // For MVP, using the default user ID
         // In production, this would come from authentication
-        const userId = "00000000-0000-0000-0000-000000000000";
+        const userId = "cb25c39f-4e8a-44de-839a-a091edbf1c24";
 
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/analysis/${userId}`,
@@ -34,8 +34,16 @@ export default function AnalysisPage() {
 
         if (!response.ok) {
           if (response.status === 404) {
+            // If analysis not found and we haven't retried too many times, retry
+            if (retryCount < 5) {
+              console.log(
+                `Analysis not found, retrying in 2 seconds... (attempt ${retryCount + 1}/5)`,
+              );
+              setTimeout(() => fetchAnalysis(retryCount + 1), 2000);
+              return;
+            }
             throw new Error(
-              "分析結果が見つかりません。まず質問に回答してください。",
+              "分析が完了していません。しばらく待ってからページを再読み込みしてください。",
             );
           }
           throw new Error("Failed to fetch analysis");
@@ -43,11 +51,11 @@ export default function AnalysisPage() {
 
         const data = await response.json();
         setAnalysisData(data);
+        setLoading(false);
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "An unknown error occurred",
         );
-      } finally {
         setLoading(false);
       }
     };
