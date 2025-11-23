@@ -3,10 +3,12 @@ import uuid
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     ARRAY,
+    JSON,
     Boolean,
     CheckConstraint,
     Column,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     Text,
@@ -189,6 +191,65 @@ class RagEmbedding(Base):
     source_id = Column(UUID(as_uuid=True), nullable=True)
     embedding = Column(Vector(1536), nullable=False)
     content = Column(Text, nullable=False)
+    question_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("questions.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    weight = Column(Float, default=1.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="rag_embeddings")
+    question = relationship("Question")
+
+
+class Question(Base):
+    __tablename__ = "questions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    category = Column(Text, nullable=False)
+    question_text = Column(Text, nullable=False)
+    display_order = Column(Integer, nullable=False)
+    weight = Column(Float, default=1.0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    answers = relationship(
+        "UserAnswer", back_populates="question", cascade="all, delete-orphan"
+    )
+
+
+class UserAnswer(Base):
+    __tablename__ = "user_answers"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    question_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("questions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    answer_text = Column(Text, nullable=False)
+    embedding_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("rag_embeddings.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    question = relationship("Question", back_populates="answers")
+    embedding = relationship("RagEmbedding")
+
+
+class AnalysisResult(Base):
+    __tablename__ = "analysis_results"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), nullable=False)
+    analysis_type = Column(Text, nullable=False)
+    result_data = Column(JSON, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -22,3 +22,56 @@ class GeneratedAnswer(BaseModel):
 
 class AnswerRequest(BaseModel):
     query_text: str = Field(..., min_length=1, description="Query cannot be empty")
+
+
+class QuestionBase(BaseModel):
+    category: str
+    question_text: str
+    display_order: int
+    weight: float = 1.0
+
+
+class Question(QuestionBase):
+    id: UUID
+
+    class Config:
+        from_attributes = True
+
+
+class QuestionList(BaseModel):
+    questions: list[Question]
+
+
+class UserAnswerCreate(BaseModel):
+    question_id: UUID
+    answer_text: str = Field(..., min_length=1)
+
+
+class UserAnswerSubmit(BaseModel):
+    answers: list[UserAnswerCreate]
+
+
+class UserAnswer(UserAnswerCreate):
+    id: UUID
+    user_id: UUID
+    embedding_id: UUID | None
+
+    class Config:
+        from_attributes = True
+
+
+class AnalysisResult(BaseModel):
+    id: UUID
+    user_id: UUID
+    analysis_type: str
+    result_data: dict
+
+    class Config:
+        from_attributes = True
+
+
+class AnalysisResponse(BaseModel):
+    keywords: list[str]
+    strengths: list[dict]
+    values: list[str]
+    summary: str

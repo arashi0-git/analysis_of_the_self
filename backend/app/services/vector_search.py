@@ -30,10 +30,16 @@ def search_similar_items(
 
     similarity_expr = 1 - models.RagEmbedding.embedding.cosine_distance(query_embedding)
 
+    # Apply weight (default to 1.0 if null)
+    # weighted_score = similarity * weight
+    from sqlalchemy import func
+
+    weighted_score = similarity_expr * func.coalesce(models.RagEmbedding.weight, 1.0)
+
     stmt = (
-        select(models.RagEmbedding, similarity_expr.label("similarity"))
-        .filter(similarity_expr >= similarity_threshold)
-        .order_by(similarity_expr.desc())
+        select(models.RagEmbedding, weighted_score.label("score"))
+        .filter(weighted_score >= similarity_threshold)
+        .order_by(weighted_score.desc())
         .limit(limit)
     )
 

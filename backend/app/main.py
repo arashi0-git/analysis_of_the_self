@@ -4,11 +4,14 @@ from sqlalchemy.orm import Session
 
 from . import crud, schemas
 from .database import get_db
+from .routers import questionnaire
 
 # Create tables (safe for dev)
 # models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.include_router(questionnaire.router)
 
 # CORS setup
 origins = [

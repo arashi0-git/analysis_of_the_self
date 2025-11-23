@@ -59,6 +59,7 @@ def test_db_setup():
         conn.commit()
 
     # Create tables
+    Base.metadata.drop_all(bind=test_engine)
     Base.metadata.create_all(bind=test_engine)
 
     yield test_engine
