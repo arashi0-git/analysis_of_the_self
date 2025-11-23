@@ -30,8 +30,16 @@ def submit_answers(
         embedding_vector = get_embedding(answer.answer_text)
 
         # Fetch question to get weight
-        question = db.query(models.Question).get(answer.question_id)
-        weight = question.weight if question else 1.0
+        # Fetch question to get weight
+        question = db.get(models.Question, answer.question_id)
+        if question is None:
+            # Question not found - this should be an error
+            from fastapi import HTTPException
+
+            raise HTTPException(
+                status_code=404, detail=f"Question {answer.question_id} not found"
+            )
+        weight = question.weight
 
         # Create RagEmbedding
         rag_embedding = crud.create_rag_embedding(
