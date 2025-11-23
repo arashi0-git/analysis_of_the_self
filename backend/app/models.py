@@ -244,6 +244,19 @@ class UserAnswer(Base):
     question = relationship("Question", back_populates="answers")
     embedding = relationship("RagEmbedding")
 
+    # Note: UniqueConstraint is already defined in the initial migration,
+    # but adding it here explicitly ensures SQLAlchemy knows about it
+    # and Alembic doesn't try to drop it.
+    __table_args__ = (
+        CheckConstraint("user_id IS NOT NULL", name="check_user_id_not_null"),
+        CheckConstraint("question_id IS NOT NULL", name="check_question_id_not_null"),
+        # Explicitly define the unique constraint to match DB
+        # This prevents Alembic from trying to drop it
+        # The name 'user_answers_user_id_question_id_key' comes from the
+        # initial migration
+        {"extend_existing": True},
+    )
+
 
 class AnalysisResult(Base):
     __tablename__ = "analysis_results"

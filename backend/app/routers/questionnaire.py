@@ -3,7 +3,7 @@ from uuid import UUID
 from app import crud, models, schemas
 from app.database import get_db
 from app.services.embedding import get_embedding
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -34,8 +34,6 @@ def submit_answers(
         question = db.get(models.Question, answer.question_id)
         if question is None:
             # Question not found - this should be an error
-            from fastapi import HTTPException
-
             raise HTTPException(
                 status_code=404, detail=f"Question {answer.question_id} not found"
             )
