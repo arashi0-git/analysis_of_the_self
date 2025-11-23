@@ -2,6 +2,7 @@ from uuid import UUID
 
 from app import crud, models, schemas
 from app.database import get_db
+from app.services.analysis import run_analysis_background
 from app.services.embedding import get_embedding
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -59,27 +60,17 @@ def submit_answers(
             embedding_id=rag_embedding.id,
         )
 
-    # Trigger analysis in background (Placeholder)
-    # background_tasks.add_task(analyze_user_answers, user_id, db)
+    # Trigger analysis in background
+    background_tasks.add_task(run_analysis_background, user_id)
 
     return {"status": "success", "message": "Answers submitted successfully"}
 
 
 @router.get("/analysis/{user_id}", response_model=schemas.AnalysisResponse)
 def get_analysis(user_id: UUID, db: Session = Depends(get_db)):  # noqa: B008
-    # For MVP, return mock data if no analysis exists
-    # In real implementation, we would fetch from AnalysisResult table
+    # Fetch analysis result
+    analysis_result = crud.get_analysis_result(db, user_id, "self_analysis")
+    if not analysis_result:
+        raise HTTPException(status_code=404, detail="Analysis not found")
 
-    # Mock response for now as analysis logic is in Phase 3
-    return {
-        "keywords": ["リーダーシップ", "粘り強さ", "チームワーク"],
-        "strengths": [
-            {
-                "strength": "リーダーシップ",
-                "evidence": ["運動会でリレーの選手...", "文化祭で実行委員..."],
-                "confidence": 0.85,
-            }
-        ],
-        "values": ["成長", "挑戦", "協力"],
-        "summary": "あなたは困難な状況でも諦めず、チームを引っ張る力があります...",
-    }
+    return analysis_result.result_data

@@ -52,9 +52,37 @@ def test_submit_answers(client, db_session):
 
 
 def test_get_analysis(client, db_session):
-    user_id = str(uuid4())
+    # Create a user and analysis result
+    user = models.User(email="test@example.com", name="Test User")
+    db_session.add(user)
+    db_session.commit()
+    user_id = str(user.id)
+
+    # Create analysis result
+    analysis_data = {
+        "keywords": ["test", "coding"],
+        "strengths": [
+            {"strength": "Testing", "evidence": "Good at tests", "confidence": 0.9}
+        ],
+        "values": ["Quality"],
+        "summary": "Test summary",
+    }
+    analysis_result = models.AnalysisResult(
+        user_id=user.id, analysis_type="self_analysis", result_data=analysis_data
+    )
+    db_session.add(analysis_result)
+    db_session.commit()
+
+    # Test retrieval
     response = client.get(f"/analysis/{user_id}")
     assert response.status_code == 200
     data = response.json()
-    assert "keywords" in data
-    assert "strengths" in data
+    assert data["keywords"] == ["test", "coding"]
+    assert data["summary"] == "Test summary"
+    assert len(data["strengths"]) == 1
+
+
+def test_get_analysis_not_found(client, db_session):
+    user_id = str(uuid4())
+    response = client.get(f"/analysis/{user_id}")
+    assert response.status_code == 404

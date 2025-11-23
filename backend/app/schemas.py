@@ -70,8 +70,18 @@ class AnalysisResult(BaseModel):
         from_attributes = True
 
 
-class AnalysisResponse(BaseModel):
+class StrengthItem(BaseModel):
+    strength: str
+    evidence: str
+    confidence: float
+
+
+class AnalysisResultContent(BaseModel):
     keywords: list[str]
-    strengths: list[dict]
+    strengths: list[StrengthItem]
     values: list[str]
     summary: str
+
+
+class AnalysisResponse(AnalysisResultContent):
+    pass
