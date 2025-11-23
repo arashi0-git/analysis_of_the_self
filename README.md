@@ -2,7 +2,7 @@
 
 日本のIT業界への新卒就職を目指すユーザー向けの、RAG（Retrieval-Augmented Generation）を活用した自己分析・ES作成支援アプリケーションです。
 
-![Chat Interface](/Users/yamamotoarashi/.gemini/antigravity/brain/c35015b4-0ab0-4c43-9840-27065e88607b/after_fix_test_retry_1763802454281.png)
+<img width="1470" height="735" alt="image" src="https://github.com/user-attachments/assets/262dd6d5-0a99-4009-a8a3-7c4491ad05c3" />
 
 ## 🎯 主な機能
 
