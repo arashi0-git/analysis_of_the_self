@@ -20,9 +20,10 @@ export default function AnalysisPage() {
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    const fetchAnalysis = async (retryCount = 0) => {
+    const fetchAnalysis = async (currentRetry = 0) => {
       try {
         // For MVP, using the default user ID
         // In production, this would come from authentication
@@ -35,11 +36,12 @@ export default function AnalysisPage() {
         if (!response.ok) {
           if (response.status === 404) {
             // If analysis not found and we haven't retried too many times, retry
-            if (retryCount < 5) {
+            if (currentRetry < 10) {
+              setRetryCount(currentRetry + 1);
               console.log(
-                `Analysis not found, retrying in 2 seconds... (attempt ${retryCount + 1}/5)`,
+                `Analysis not found, retrying in 3 seconds... (attempt ${currentRetry + 1}/10)`,
               );
-              setTimeout(() => fetchAnalysis(retryCount + 1), 2000);
+              setTimeout(() => fetchAnalysis(currentRetry + 1), 3000);
               return;
             }
             throw new Error(
@@ -65,8 +67,13 @@ export default function AnalysisPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <div className="text-xl">分析結果を読み込んでいます...</div>
+        {retryCount > 0 && (
+          <div className="text-sm text-gray-600">
+            分析処理中です... ({retryCount}/10回目の確認)
+          </div>
+        )}
       </div>
     );
   }
