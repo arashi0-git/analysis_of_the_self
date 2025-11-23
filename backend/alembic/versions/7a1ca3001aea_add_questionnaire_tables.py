@@ -40,6 +40,15 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
+    op.create_index(
+        op.f("ix_questions_category"), "questions", ["category"], unique=False
+    )
+    op.create_index(
+        op.f("ix_questions_display_order"),
+        "questions",
+        ["display_order"],
+        unique=False,
+    )
 
     # Create user_answers table
     op.create_table(
@@ -66,16 +75,37 @@ def upgrade() -> None:
             server_default=sa.text("CURRENT_TIMESTAMP"),
             nullable=True,
         ),
+        sa.ForeignKeyConstraint(["question_id"], ["questions.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(
-            ["question_id"],
-            ["questions.id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["embedding_id"],
-            ["rag_embeddings.id"],
+            ["embedding_id"], ["rag_embeddings.id"], ondelete="SET NULL"
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("user_id", "question_id"),
+    )
+    op.create_index(
+        op.f("ix_user_answers_user_id"), "user_answers", ["user_id"], unique=False
+    )
+
+    # Create trigger for updated_at
+    op.execute(
+        """
+        CREATE OR REPLACE FUNCTION update_updated_at_column()
+        RETURNS TRIGGER AS $$
+        BEGIN
+            NEW.updated_at = CURRENT_TIMESTAMP;
+            RETURN NEW;
+        END;
+        $$ language 'plpgsql';
+    """
+    )
+
+    op.execute(
+        """
+        CREATE TRIGGER update_user_answers_updated_at
+        BEFORE UPDATE ON user_answers
+        FOR EACH ROW
+        EXECUTE FUNCTION update_updated_at_column();
+    """
     )
 
     # Create analysis_results table
@@ -105,16 +135,42 @@ def upgrade() -> None:
         "rag_embeddings",
         sa.Column("weight", sa.Float(), server_default="1.0", nullable=True),
     )
-    op.create_foreign_key(None, "rag_embeddings", "questions", ["question_id"], ["id"])
+
+    op.create_foreign_key(
+        "fk_rag_embeddings_question_id",
+        "rag_embeddings",
+        "questions",
+        ["question_id"],
+        ["id"],
+        ondelete="SET NULL",
+    )
+    op.create_index(
+        op.f("ix_rag_embeddings_question_id"),
+        "rag_embeddings",
+        ["question_id"],
+        unique=False,
+    )
 
 
 def downgrade() -> None:
     # Remove columns from rag_embeddings
-    op.drop_constraint(None, "rag_embeddings", type_="foreignkey")
+    op.drop_index(op.f("ix_rag_embeddings_question_id"), table_name="rag_embeddings")
+    op.drop_constraint(
+        "fk_rag_embeddings_question_id", "rag_embeddings", type_="foreignkey"
+    )
     op.drop_column("rag_embeddings", "weight")
     op.drop_column("rag_embeddings", "question_id")
 
     # Drop tables
     op.drop_table("analysis_results")
+
+    # Drop trigger and function
+    op.execute("DROP TRIGGER IF EXISTS update_user_answers_updated_at ON user_answers")
+    op.execute("DROP FUNCTION IF EXISTS update_updated_at_column")
+
+    op.drop_index(op.f("ix_user_answers_user_id"), table_name="user_answers")
     op.drop_table("user_answers")
+
+    op.drop_index(op.f("ix_questions_display_order"), table_name="questions")
+    op.drop_index(op.f("ix_questions_category"), table_name="questions")
     op.drop_table("questions")
