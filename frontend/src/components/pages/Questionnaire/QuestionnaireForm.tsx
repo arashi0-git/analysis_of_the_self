@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 
 interface Question {
   id: string;
@@ -46,7 +46,7 @@ export default function QuestionnaireForm({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     console.log("Form handleSubmit called");
     e.preventDefault();
     console.log("Validating...");

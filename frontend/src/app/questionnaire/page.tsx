@@ -16,7 +16,8 @@ export default function QuestionnairePage() {
   const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -30,7 +31,7 @@ export default function QuestionnairePage() {
         const data = await response.json();
         setQuestions(data.questions);
       } catch (err) {
-        setError(
+        setLoadError(
           err instanceof Error ? err.message : "An unknown error occurred",
         );
       } finally {
@@ -83,7 +84,9 @@ export default function QuestionnairePage() {
       router.push("/analysis");
     } catch (err) {
       console.error("Submit error:", err);
-      setError(err instanceof Error ? err.message : "Failed to submit answers");
+      setSubmitError(
+        err instanceof Error ? err.message : "Failed to submit answers",
+      );
       alert(
         `エラーが発生しました: ${err instanceof Error ? err.message : "Unknown error"}`,
       );
@@ -98,10 +101,10 @@ export default function QuestionnairePage() {
     );
   }
 
-  if (error) {
+  if (loadError) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-xl text-red-500">Error: {error}</div>
+        <div className="text-xl text-red-500">Error: {loadError}</div>
       </div>
     );
   }
@@ -109,6 +112,11 @@ export default function QuestionnairePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-8 text-4xl font-bold">自己分析質問</h1>
+      {submitError && (
+        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-4">
+          <p className="text-red-700">エラー: {submitError}</p>
+        </div>
+      )}
       <p className="mb-8 text-gray-600">
         以下の質問に回答してください。回答内容を元に、あなたの強みや価値観を分析します。
       </p>
