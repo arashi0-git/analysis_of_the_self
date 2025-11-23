@@ -2,7 +2,11 @@
 
 日本のIT業界への新卒就職を目指すユーザー向けの、RAG（Retrieval-Augmented Generation）を活用した自己分析・ES作成支援アプリケーションです。
 
-<img width="1470" height="735" alt="image" src="https://github.com/user-attachments/assets/262dd6d5-0a99-4009-a8a3-7c4491ad05c3" />
+<img width="1470" height="797" alt="image" src="https://github.com/user-attachments/assets/556f4ff7-d28c-4221-a9fd-84bfe16f848f" />
+
+<img width="1470" height="874" alt="image" src="https://github.com/user-attachments/assets/241b9d4b-f0de-42ef-821f-81ea07e8c8f2" />
+
+<img width="1470" height="735" alt="image" src="https://github.com/user-attachments/assets/40d6ac5c-87a3-4c46-8ff5-897e4b7d7fdf" />
 
 ## 🎯 主な機能
 
