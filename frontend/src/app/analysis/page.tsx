@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import AnalysisDisplay from "@/components/pages/Analysis/AnalysisDisplay";
 
 interface StrengthItem {
@@ -23,6 +24,9 @@ export default function AnalysisPage() {
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout | null = null;
+
     const fetchAnalysis = async (currentRetry = 0) => {
       try {
         // For MVP, using the default user ID
@@ -37,11 +41,14 @@ export default function AnalysisPage() {
           if (response.status === 404) {
             // If analysis not found and we haven't retried too many times, retry
             if (currentRetry < 10) {
-              setRetryCount(currentRetry + 1);
+              if (isMounted) setRetryCount(currentRetry + 1);
               console.log(
                 `Analysis not found, retrying in 3 seconds... (attempt ${currentRetry + 1}/10)`,
               );
-              setTimeout(() => fetchAnalysis(currentRetry + 1), 3000);
+              timeoutId = setTimeout(
+                () => fetchAnalysis(currentRetry + 1),
+                3000,
+              );
               return;
             }
             throw new Error(
@@ -52,17 +59,26 @@ export default function AnalysisPage() {
         }
 
         const data = await response.json();
-        setAnalysisData(data);
-        setLoading(false);
+        if (isMounted) {
+          setAnalysisData(data);
+          setLoading(false);
+        }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "An unknown error occurred",
-        );
-        setLoading(false);
+        if (isMounted) {
+          setError(
+            err instanceof Error ? err.message : "An unknown error occurred",
+          );
+          setLoading(false);
+        }
       }
     };
 
     fetchAnalysis();
+
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   if (loading) {
@@ -82,12 +98,12 @@ export default function AnalysisPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
         <div className="text-xl text-red-500">エラー: {error}</div>
-        <a
+        <Link
           href="/questionnaire"
           className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
         >
           質問に回答する
-        </a>
+        </Link>
       </div>
     );
   }
