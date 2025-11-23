@@ -1,6 +1,5 @@
 import openai
 from app.core.openai import client
-from fastapi import HTTPException
 from pydantic import BaseModel
 
 
@@ -21,7 +20,7 @@ def generate_response(
         str: The generated response text.
 
     Raises:
-        HTTPException: If the API call fails.
+        RuntimeError: If the API call fails.
     """
     try:
         response = client.chat.completions.create(
@@ -33,15 +32,9 @@ def generate_response(
         )
         return response.choices[0].message.content
     except openai.APIStatusError as exc:
-        raise HTTPException(
-            status_code=exc.status_code,
-            detail=f"OpenAI API Error: {exc!s}",
-        ) from exc
+        raise RuntimeError(f"OpenAI API Error: {exc!s}") from exc
     except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"OpenAI API Error: {exc!s}",
-        ) from exc
+        raise RuntimeError(f"OpenAI API Error: {exc!s}") from exc
 
 
 def generate_structured_response(
@@ -63,7 +56,7 @@ def generate_structured_response(
         BaseModel: The parsed response object.
 
     Raises:
-        HTTPException: If the API call fails.
+        RuntimeError: If the API call fails.
     """
     try:
         completion = client.beta.chat.completions.parse(
@@ -76,12 +69,6 @@ def generate_structured_response(
         )
         return completion.choices[0].message.parsed
     except openai.APIStatusError as exc:
-        raise HTTPException(
-            status_code=503,
-            detail=f"OpenAI API Error: {exc!s}",
-        ) from exc
+        raise RuntimeError(f"OpenAI API Error: {exc!s}") from exc
     except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"OpenAI API Error: {exc!s}",
-        ) from exc
+        raise RuntimeError(f"OpenAI API Error: {exc!s}") from exc

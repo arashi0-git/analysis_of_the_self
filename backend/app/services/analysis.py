@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 
 
-def analyze_user_answers(user_id: UUID, db: Session) -> schemas.AnalysisResult:
+def analyze_user_answers(user_id: UUID, db: Session) -> schemas.AnalysisResult | None:
     """
     Analyze user answers and save the result.
     """
@@ -69,8 +69,8 @@ def run_analysis_background(user_id: UUID):
             logger.warning(f"No answers found for user_id={user_id}")
         else:
             logger.info(f"Analysis completed for user_id={user_id}")
-    except Exception as e:
-        logger.exception(f"Analysis failed for user_id={user_id}: {e}")
+    except Exception:
+        logger.exception(f"Analysis failed for user_id={user_id}")
         # Consider: store error state in DB for user notification
     finally:
         db.close()
