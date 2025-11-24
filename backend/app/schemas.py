@@ -120,3 +120,13 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# AI Feedback schemas
+class AnswerFeedbackRequest(BaseModel):
+    answer_text: str = Field(..., min_length=1)
+
+
+class AnswerFeedbackResponse(BaseModel):
+    feedback: str
+    suggestions: list[str]

@@ -23,6 +23,10 @@ interface QuestionnaireFormProps {
   existingAnswers?: UserAnswer[];
   onSubmit: (answers: Record<string, string>) => Promise<void>;
   onSaveIndividual?: (questionId: string, answer: string) => Promise<void>;
+  onGetFeedback?: (
+    questionId: string,
+    answerText: string,
+  ) => Promise<{ feedback: string; suggestions: string[] }>;
 }
 
 export default function QuestionnaireForm({
@@ -30,12 +34,22 @@ export default function QuestionnaireForm({
   existingAnswers,
   onSubmit,
   onSaveIndividual,
+  onGetFeedback,
 }: QuestionnaireFormProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [savingStates, setSavingStates] = useState<Record<string, boolean>>({});
   const [savedStates, setSavedStates] = useState<Record<string, boolean>>({});
+  const [feedbackStates, setFeedbackStates] = useState<
+    Record<
+      string,
+      {
+        loading: boolean;
+        data: { feedback: string; suggestions: string[] } | null;
+      }
+    >
+  >({});
   const timeoutsRef = useRef<Record<string, number>>({});
 
   const hasExistingAnswers = existingAnswers && existingAnswers.length > 0;
@@ -70,6 +84,11 @@ export default function QuestionnaireForm({
     }
     // Clear saved state when user edits
     setSavedStates((prev) => ({ ...prev, [questionId]: false }));
+    // Clear feedback when user edits
+    setFeedbackStates((prev) => ({
+      ...prev,
+      [questionId]: { loading: false, data: null },
+    }));
   };
 
   const validate = () => {
@@ -141,6 +160,45 @@ export default function QuestionnaireForm({
     }
   };
 
+  const handleGetFeedback = async (questionId: string) => {
+    if (!onGetFeedback) return;
+
+    const answerText = answers[questionId];
+    if (!answerText || answerText.trim() === "") {
+      setErrors((prev) => ({
+        ...prev,
+        [questionId]: "回答を入力してからフィードバックを取得してください",
+      }));
+      return;
+    }
+
+    setFeedbackStates((prev) => ({
+      ...prev,
+      [questionId]: { loading: true, data: null },
+    }));
+
+    try {
+      const feedback = await onGetFeedback(questionId, answerText);
+      setFeedbackStates((prev) => ({
+        ...prev,
+        [questionId]: { loading: false, data: feedback },
+      }));
+    } catch (error) {
+      console.error("Failed to get feedback:", error);
+      setFeedbackStates((prev) => ({
+        ...prev,
+        [questionId]: { loading: false, data: null },
+      }));
+      setErrors((prev) => ({
+        ...prev,
+        [questionId]:
+          error instanceof Error
+            ? error.message
+            : "フィードバックの取得に失敗しました。",
+      }));
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {questions.map((question) => (
@@ -188,6 +246,34 @@ export default function QuestionnaireForm({
               {savedStates[question.id] && (
                 <span className="text-sm text-accent">✓ 保存しました</span>
               )}
+            </div>
+          )}
+
+          {/* AI Feedback button */}
+          {onGetFeedback && (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => handleGetFeedback(question.id)}
+                disabled={feedbackStates[question.id]?.loading}
+                className="rounded-lg bg-secondary px-4 py-2 text-sm font-semibold text-white hover:bg-secondary/90 transition-colors disabled:cursor-not-allowed disabled:bg-gray-400"
+              >
+                {feedbackStates[question.id]?.loading
+                  ? "AI分析中..."
+                  : "💡 AI フィードバック"}
+              </button>
+            </div>
+          )}
+
+          {/* AI Feedback display */}
+          {feedbackStates[question.id]?.data && (
+            <div className="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-4">
+              <h4 className="font-semibold text-blue-900 mb-2">
+                💡 AI からのアドバイス
+              </h4>
+              <p className="text-sm text-blue-800 whitespace-pre-wrap">
+                {feedbackStates[question.id]?.data?.feedback || ""}
+              </p>
             </div>
           )}
         </div>

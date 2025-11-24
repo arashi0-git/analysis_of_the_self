@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import QuestionnaireForm from "@/components/pages/Questionnaire/QuestionnaireForm";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { API_BASE_URL, getUserAnswers, updateSingleAnswer } from "@/lib/api";
+import {
+  API_BASE_URL,
+  getUserAnswers,
+  updateSingleAnswer,
+  getAnswerFeedback,
+} from "@/lib/api";
 
 interface Question {
   id: string;
@@ -122,6 +127,14 @@ export default function QuestionnairePage() {
     await updateSingleAnswer(questionId, answerText, token);
   };
 
+  const handleGetFeedback = async (questionId: string, answerText: string) => {
+    if (!token) {
+      throw new Error("認証トークンが見つかりません");
+    }
+
+    return await getAnswerFeedback(questionId, answerText, token);
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -161,6 +174,7 @@ export default function QuestionnairePage() {
           existingAnswers={existingAnswers}
           onSubmit={handleSubmit}
           onSaveIndividual={handleSaveIndividual}
+          onGetFeedback={handleGetFeedback}
         />
       </div>
     </ProtectedRoute>

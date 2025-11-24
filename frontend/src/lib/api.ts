@@ -148,3 +148,49 @@ export async function updateSingleAnswer(
     throw error;
   }
 }
+
+export interface AnswerFeedbackResponse {
+  feedback: string;
+  suggestions: string[];
+}
+
+export async function getAnswerFeedback(
+  questionId: string,
+  answerText: string,
+  token: string,
+): Promise<AnswerFeedbackResponse> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒タイムアウト
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/answers/${questionId}/feedback`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ answer_text: answerText }),
+        signal: controller.signal,
+      },
+    );
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Failed to get feedback: ${response.status} ${errorText}`);
+      throw new Error(
+        "フィードバックの取得に失敗しました。もう一度お試しください。",
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("サーバーの応答が遅すぎます。もう一度お試しください。");
+    }
+    throw error;
+  }
+}
