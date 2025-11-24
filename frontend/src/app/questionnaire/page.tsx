@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import QuestionnaireForm from "@/components/pages/Questionnaire/QuestionnaireForm";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Question {
   id: string;
@@ -25,9 +26,7 @@ export default function QuestionnairePage() {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/questions`,
-        );
+        const response = await fetch(`${API_BASE_URL}/questions`);
         if (!response.ok) {
           throw new Error("Failed to fetch questions");
         }
@@ -68,17 +67,14 @@ export default function QuestionnairePage() {
         `${process.env.NEXT_PUBLIC_API_URL}/answers/submit`,
       );
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/answers/submit`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ answers: formattedAnswers }),
+      const response = await fetch(`${API_BASE_URL}/answers/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ answers: formattedAnswers }),
+      });
 
       console.log("Response status:", response.status);
 

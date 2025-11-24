@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import EditQuestionnaireForm from "@/components/pages/Questionnaire/EditQuestionnaireForm";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { getUserAnswers, updateSingleAnswer } from "@/lib/api";
+import { getUserAnswers, updateSingleAnswer, API_BASE_URL } from "@/lib/api";
 
 interface Question {
   id: string;
@@ -33,13 +33,14 @@ export default function QuestionnaireEditPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!token) return;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
       try {
         // Fetch questions
-        const questionsResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/questions`,
-        );
+        const questionsResponse = await fetch(`${API_BASE_URL}/questions`);
         if (!questionsResponse.ok) {
           throw new Error("Failed to fetch questions");
         }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import AnalysisDisplay from "@/components/pages/Analysis/AnalysisDisplay";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from "@/lib/api";
 
 interface StrengthItem {
   strength: string;
@@ -34,14 +35,11 @@ export default function AnalysisPage() {
       if (!token) return;
 
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/analysis`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        const response = await fetch(`${API_BASE_URL}/analysis`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
 
         if (!response.ok) {
           if (response.status === 404) {
