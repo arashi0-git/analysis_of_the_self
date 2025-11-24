@@ -96,7 +96,14 @@ export async function getUserAnswers(
       throw new Error("回答の取得に失敗しました。もう一度お試しください。");
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    // Validate response format
+    if (!data || !Array.isArray(data.answers)) {
+      throw new Error("Invalid response format from server");
+    }
+
+    return data as UserAnswersResponse;
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
@@ -133,9 +140,6 @@ export async function updateSingleAnswer(
       // Throw user-friendly error message
       throw new Error("回答の更新に失敗しました。もう一度お試しください。");
     }
-
-    // Response body is not used, just ensure request succeeded
-    await response.json();
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {

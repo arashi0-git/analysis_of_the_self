@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import type { UserAnswer } from "@/lib/api";
 
 interface Question {
   id: string;
@@ -8,14 +9,6 @@ interface Question {
   question_text: string;
   display_order: number;
   weight: number;
-}
-
-interface UserAnswer {
-  id: string;
-  user_id: string;
-  question_id: string;
-  answer_text: string;
-  embedding_id: string | null;
 }
 
 interface EditQuestionnaireFormProps {
