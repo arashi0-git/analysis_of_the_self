@@ -99,6 +99,39 @@ def get_user_answers(db: Session, user_id: uuid.UUID):
     )
 
 
+def get_user_answer_by_question(
+    db: Session, user_id: uuid.UUID, question_id: uuid.UUID
+):
+    return (
+        db.query(models.UserAnswer)
+        .filter(
+            models.UserAnswer.user_id == user_id,
+            models.UserAnswer.question_id == question_id,
+        )
+        .first()
+    )
+
+
+def update_user_answer(
+    db: Session,
+    user_id: uuid.UUID,
+    question_id: uuid.UUID,
+    answer_text: str,
+    embedding_id: uuid.UUID | None = None,
+):
+    answer = get_user_answer_by_question(db, user_id, question_id)
+    if not answer:
+        return None
+
+    answer.answer_text = answer_text
+    if embedding_id is not None:
+        answer.embedding_id = embedding_id
+
+    db.commit()
+    db.refresh(answer)
+    return answer
+
+
 def create_analysis_result(
     db: Session, user_id: uuid.UUID, analysis_type: str, result_data: dict
 ):
