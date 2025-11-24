@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from app import schemas
 from app.services import embedding, llm, vector_search
 from sqlalchemy.orm import Session
@@ -6,6 +8,7 @@ from sqlalchemy.orm import Session
 def generate_answer(
     db: Session,
     query_text: str,
+    user_id: UUID,
 ) -> schemas.GeneratedAnswer:
     """
     Generates an answer to the user's query using RAG.
@@ -18,6 +21,7 @@ def generate_answer(
     Args:
         db: Database session.
         query_text: The user's query.
+        user_id: The user ID.
 
     Returns:
         schemas.GeneratedAnswer: The structured answer.
@@ -28,7 +32,7 @@ def generate_answer(
     # 2. Vector Search
     # Limit to top 5 results for context
     search_results = vector_search.search_similar_items(
-        db, query_vec, limit=5, similarity_threshold=0.3
+        db, query_vec, user_id, limit=5, similarity_threshold=0.3
     )
 
     if not search_results:

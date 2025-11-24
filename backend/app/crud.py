@@ -1,32 +1,24 @@
 import uuid
 
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from . import models
+from . import models, schemas
+from .core import security
 
 
-def get_or_create_default_user(db: Session):
-    # For MVP, we assume a single user.
-    # Check if any user exists
-    user = db.query(models.User).first()
-    if user:
-        return user
+def get_user_by_email(db: Session, email: str):
+    return db.query(models.User).filter(models.User.email == email).first()
 
-    # Create a default user
-    try:
-        default_user = models.User(email="user@example.com", name="Default User")
-        db.add(default_user)
-        db.commit()
-        db.refresh(default_user)
-        return default_user
-    except IntegrityError:
-        db.rollback()
-        # Another request created the user, fetch it
-        user = db.query(models.User).first()
-        if user:
-            return user
-        raise
+
+def create_user(db: Session, user: schemas.UserRegister):
+    hashed_password = security.hash_password(user.password)
+    db_user = models.User(
+        email=user.email, name=user.name, hashed_password=hashed_password
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
 
 def create_rag_embedding(

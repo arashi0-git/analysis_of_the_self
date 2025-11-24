@@ -85,3 +85,28 @@ class AnalysisResultContent(BaseModel):
 
 class AnalysisResponse(AnalysisResultContent):
     pass
+
+
+class UserRegister(BaseModel):
+    email: str
+    password: str
+    name: str
+
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class UserResponse(BaseModel):
+    id: UUID
+    email: str
+    name: str
+
+    class Config:
+        from_attributes = True

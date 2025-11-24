@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AnalysisDisplay from "@/components/pages/Analysis/AnalysisDisplay";
+import ProtectedRoute from "@/components/shared/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StrengthItem {
   strength: string;
@@ -18,6 +20,7 @@ interface AnalysisData {
 }
 
 export default function AnalysisPage() {
+  const { token } = useAuth();
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,13 +31,16 @@ export default function AnalysisPage() {
     let timeoutId: NodeJS.Timeout | null = null;
 
     const fetchAnalysis = async (currentRetry = 0) => {
-      try {
-        // For MVP, using the default user ID
-        // In production, this would come from authentication
-        const userId = "cb25c39f-4e8a-44de-839a-a091edbf1c24";
+      if (!token) return;
 
+      try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/analysis/${userId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/analysis`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
 
         if (!response.ok) {
@@ -73,13 +79,15 @@ export default function AnalysisPage() {
       }
     };
 
-    fetchAnalysis();
+    if (token) {
+      fetchAnalysis();
+    }
 
     return () => {
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, []);
+  }, [token]);
 
   if (loading) {
     return (
@@ -117,9 +125,11 @@ export default function AnalysisPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-4xl font-bold">あなたの自己分析結果</h1>
-      <AnalysisDisplay data={analysisData} />
-    </div>
+    <ProtectedRoute>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="mb-8 text-4xl font-bold">あなたの自己分析結果</h1>
+        <AnalysisDisplay data={analysisData} />
+      </div>
+    </ProtectedRoute>
   );
 }

@@ -3,13 +3,16 @@
 import React, { useState } from "react";
 import { ChatWindow, Message } from "@/components/shared/Chat/ChatWindow";
 import { generateAnswer } from "@/lib/api";
+import ProtectedRoute from "@/components/shared/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ChatPage() {
+  const { token } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSendMessage = async (text: string) => {
-    if (isLoading) return;
+    if (isLoading || !token) return;
     setIsLoading(true);
     const requestId = Date.now();
 
@@ -22,7 +25,7 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const result = await generateAnswer(text);
+      const result = await generateAnswer(text, token);
 
       // AIメッセージを追加
       const aiMessage: Message = {
@@ -48,18 +51,22 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
-      <header className="bg-white border-b border-gray-200 p-4">
-        <h1 className="text-xl font-bold text-gray-800">AI Career Counselor</h1>
-      </header>
-      <main className="flex-1 overflow-hidden">
-        <ChatWindow
-          messages={messages}
-          setMessages={setMessages}
-          onSendMessage={handleSendMessage}
-          isLoading={isLoading}
-        />
-      </main>
-    </div>
+    <ProtectedRoute>
+      <div className="h-screen flex flex-col">
+        <header className="bg-white border-b border-gray-200 p-4">
+          <h1 className="text-xl font-bold text-gray-800">
+            AI Career Counselor
+          </h1>
+        </header>
+        <main className="flex-1 overflow-hidden">
+          <ChatWindow
+            messages={messages}
+            setMessages={setMessages}
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+          />
+        </main>
+      </div>
+    </ProtectedRoute>
   );
 }

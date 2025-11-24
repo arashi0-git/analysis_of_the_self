@@ -26,6 +26,9 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(Text, nullable=False)
     email = Column(Text, unique=True, nullable=False)
+    hashed_password = Column(
+        Text, nullable=True
+    )  # Nullable for existing users, but should be required for new ones
     university = Column(Text)
     major = Column(Text)
     desired_roles = Column(ARRAY(Text))

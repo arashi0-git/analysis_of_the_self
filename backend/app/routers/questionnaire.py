@@ -1,7 +1,6 @@
-from uuid import UUID
-
 from app import crud, models, schemas
 from app.database import get_db
+from app.dependencies.auth import get_current_user
 from app.services.analysis import run_analysis_background
 from app.services.embedding import get_embedding
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -20,11 +19,10 @@ def read_questions(db: Session = Depends(get_db)):  # noqa: B008
 def submit_answers(
     submit_data: schemas.UserAnswerSubmit,
     background_tasks: BackgroundTasks,
+    current_user: models.User = Depends(get_current_user),  # noqa: B008
     db: Session = Depends(get_db),  # noqa: B008
 ):
-    # For MVP, assume single user or get from auth (hardcoded for now)
-    user = crud.get_or_create_default_user(db)
-    user_id = user.id
+    user_id = current_user.id
 
     for answer in submit_data.answers:
         # Generate embedding
@@ -66,10 +64,13 @@ def submit_answers(
     return {"status": "success", "message": "Answers submitted successfully"}
 
 
-@router.get("/analysis/{user_id}", response_model=schemas.AnalysisResponse)
-def get_analysis(user_id: UUID, db: Session = Depends(get_db)):  # noqa: B008
+@router.get("/analysis", response_model=schemas.AnalysisResponse)
+def get_analysis(
+    current_user: models.User = Depends(get_current_user),  # noqa: B008
+    db: Session = Depends(get_db),  # noqa: B008
+):
     # Fetch analysis result
-    analysis_result = crud.get_analysis_result(db, user_id, "self_analysis")
+    analysis_result = crud.get_analysis_result(db, current_user.id, "self_analysis")
     if not analysis_result:
         raise HTTPException(status_code=404, detail="Analysis not found")
 
