@@ -63,7 +63,9 @@ export default function Home() {
       <section className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <div className="bg-background p-6 rounded-lg shadow-sm border border-border">
-            <div className="text-3xl mb-4">📝</div>
+            <div className="text-3xl mb-4" aria-hidden="true">
+              📝
+            </div>
             <h3 className="text-xl font-semibold mb-2">質問に回答</h3>
             <p className="text-foreground/70">
               あなた自身について、いくつかの質問に答えてください。
@@ -71,7 +73,9 @@ export default function Home() {
           </div>
 
           <div className="bg-background p-6 rounded-lg shadow-sm border border-border">
-            <div className="text-3xl mb-4">🤖</div>
+            <div className="text-3xl mb-4" aria-hidden="true">
+              🤖
+            </div>
             <h3 className="text-xl font-semibold mb-2">AI分析</h3>
             <p className="text-foreground/70">
               AIがあなたの回答を分析し、強みや価値観を抽出します。
@@ -79,7 +83,9 @@ export default function Home() {
           </div>
 
           <div className="bg-background p-6 rounded-lg shadow-sm border border-border">
-            <div className="text-3xl mb-4">💬</div>
+            <div className="text-3xl mb-4" aria-hidden="true">
+              💬
+            </div>
             <h3 className="text-xl font-semibold mb-2">チャットで深掘り</h3>
             <p className="text-foreground/70">
               AIとチャットして、さらに深く自己理解を深めましょう。
@@ -94,8 +100,8 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center mb-12">
             使い方はシンプル
           </h2>
-          <div className="space-y-6">
-            <div className="flex gap-4">
+          <ol className="space-y-6">
+            <li className="flex gap-4">
               <div className="flex-shrink-0 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold">
                 1
               </div>
@@ -105,9 +111,9 @@ export default function Home() {
                   メールアドレスで簡単に登録できます。
                 </p>
               </div>
-            </div>
+            </li>
 
-            <div className="flex gap-4">
+            <li className="flex gap-4">
               <div className="flex-shrink-0 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold">
                 2
               </div>
@@ -117,9 +123,9 @@ export default function Home() {
                   あなた自身について、いくつかの質問に答えてください。
                 </p>
               </div>
-            </div>
+            </li>
 
-            <div className="flex gap-4">
+            <li className="flex gap-4">
               <div className="flex-shrink-0 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold">
                 3
               </div>
@@ -129,9 +135,9 @@ export default function Home() {
                   AIが分析した、あなたの強みや価値観を確認しましょう。
                 </p>
               </div>
-            </div>
+            </li>
 
-            <div className="flex gap-4">
+            <li className="flex gap-4">
               <div className="flex-shrink-0 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold">
                 4
               </div>
@@ -141,8 +147,8 @@ export default function Home() {
                   さらに深く自己理解を深めたい場合は、AIとチャットしてみましょう。
                 </p>
               </div>
-            </div>
-          </div>
+            </li>
+          </ol>
         </div>
       </section>
     </div>

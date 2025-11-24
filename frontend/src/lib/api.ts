@@ -73,21 +73,34 @@ export async function generateAnswer(
 export async function getUserAnswers(
   token: string,
 ): Promise<UserAnswersResponse> {
-  const response = await fetch(`${API_BASE_URL}/answers`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to get user answers: ${response.status} ${errorText}`,
-    );
+  try {
+    const response = await fetch(`${API_BASE_URL}/answers`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to get user answers: ${response.status} ${errorText}`,
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("Request timeout: The server took too long to respond");
+    }
+    throw error;
   }
-
-  return await response.json();
 }
 
 export async function updateSingleAnswer(
@@ -95,19 +108,34 @@ export async function updateSingleAnswer(
   answerText: string,
   token: string,
 ): Promise<{ status: string; message: string }> {
-  const response = await fetch(`${API_BASE_URL}/answers/${questionId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ answer_text: answerText }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Failed to update answer: ${response.status} ${errorText}`);
+  try {
+    const response = await fetch(`${API_BASE_URL}/answers/${questionId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ answer_text: answerText }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to update answer: ${response.status} ${errorText}`,
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("Request timeout: The server took too long to respond");
+    }
+    throw error;
   }
-
-  return await response.json();
 }

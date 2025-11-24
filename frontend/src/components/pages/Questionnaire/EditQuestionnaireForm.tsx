@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface Question {
   id: string;
@@ -39,6 +39,13 @@ export default function EditQuestionnaireForm({
 
   const [savingStates, setSavingStates] = useState<Record<string, boolean>>({});
   const [savedStates, setSavedStates] = useState<Record<string, boolean>>({});
+  const timeoutsRef = useRef<number[]>([]);
+
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach((id) => clearTimeout(id));
+    };
+  }, []);
 
   const handleChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -58,9 +65,10 @@ export default function EditQuestionnaireForm({
       await onSave(questionId, answerText);
       setSavedStates((prev) => ({ ...prev, [questionId]: true }));
       // Clear saved state after 2 seconds
-      setTimeout(() => {
+      const timeoutId = window.setTimeout(() => {
         setSavedStates((prev) => ({ ...prev, [questionId]: false }));
       }, 2000);
+      timeoutsRef.current.push(timeoutId);
     } catch (error) {
       console.error("Failed to save answer:", error);
       alert(
