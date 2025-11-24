@@ -88,16 +88,6 @@ export default function AnalysisDisplay({ data }: AnalysisDisplayProps) {
           ))}
         </div>
       </div>
-
-      {/* Action Button */}
-      <div className="flex justify-center pt-4">
-        <a
-          href="/chat"
-          className="rounded-lg bg-primary hover:bg-primary-hover px-8 py-3 font-semibold text-white transition-colors shadow-lg"
-        >
-          チャットで詳しく相談する
-        </a>
-      </div>
     </div>
   );
 }

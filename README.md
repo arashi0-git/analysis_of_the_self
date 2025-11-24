@@ -1,20 +1,58 @@
-# Analysis of the Self - RAG就活支援アプリ
+# Analysis of the Self - AI自己分析支援アプリ
 
-日本のIT業界への新卒就職を目指すユーザー向けの、RAG（Retrieval-Augmented Generation）を活用した自己分析・ES作成支援アプリケーションです。
+RAG（Retrieval-Augmented Generation）とAIを活用した、自己分析・就活支援アプリケーションです。
 
-<img width="1470" height="797" alt="image" src="https://github.com/user-attachments/assets/556f4ff7-d28c-4221-a9fd-84bfe16f848f" />
+## 📸 スクリーンショット
 
-<img width="1470" height="874" alt="image" src="https://github.com/user-attachments/assets/241b9d4b-f0de-42ef-821f-81ea07e8c8f2" />
+### ホームページ
+<!-- スクリーンショットをここに配置: screenshots/home.png -->
 
-<img width="1470" height="735" alt="image" src="https://github.com/user-attachments/assets/40d6ac5c-87a3-4c46-8ff5-897e4b7d7fdf" />
+### 質問回答ページ（AI添削機能付き）
+<!-- スクリーンショットをここに配置: screenshots/questionnaire.png -->
+
+### 分析結果ページ
+<!-- スクリーンショットをここに配置: screenshots/analysis.png -->
+
+### チャットページ
+<!-- スクリーンショットをここに配置: screenshots/chat.png -->
 
 ## 🎯 主な機能
 
-- **メモ保存**: 過去の経験や価値観をテキストで保存
-- **自動Embedding生成**: OpenAI APIを使用してテキストをベクトル化
-- **ベクトル検索**: pgvectorを使用した高速な類似度検索
-- **AI回答生成**: GPT-4o-miniによる構造化された回答生成
-- **チャットUI**: Reactベースの直感的なインターフェース
+### 1. ユーザー認証
+
+- JWT認証による安全なログイン・登録
+- Argon2によるパスワードハッシュ化
+- セッション管理
+
+### 2. 質問回答システム
+
+- 10問の自己分析質問に回答
+- **AI添削機能**: 各質問に対してGPT-3.5-turboが改善提案を提供
+  - 具体性の向上
+  - 深掘り質問
+  - 強みの明確化
+- 個別保存機能（一問ずつ保存可能）
+- 既存回答の編集
+
+### 3. AI分析
+
+- OpenAI GPT-4を使用した自己分析
+- キーワード抽出
+- 強みの特定（エビデンス付き）
+- 価値観の分析
+- 総合サマリー生成
+
+### 4. RAGチャット
+
+- pgvectorによるベクトル検索
+- 過去の回答を参照したAI回答生成
+- リアルタイムチャットUI
+
+### 5. 統合UX
+
+- 質問回答と編集を1ページで完結
+- レスポンシブデザイン
+- 直感的なUI/UX
 
 ## 🏗️ アーキテクチャ
 

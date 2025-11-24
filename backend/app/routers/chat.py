@@ -5,7 +5,7 @@ from app.services.answer_generation import generate_answer
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-router = APIRouter()
+router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 @router.post("/answer", response_model=schemas.GeneratedAnswer)

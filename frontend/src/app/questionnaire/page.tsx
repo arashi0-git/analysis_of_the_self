@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import QuestionnaireForm from "@/components/pages/Questionnaire/QuestionnaireForm";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { API_BASE_URL } from "@/lib/api";
+import {
+  API_BASE_URL,
+  getUserAnswers,
+  updateSingleAnswer,
+  getAnswerFeedback,
+  type UserAnswer,
+} from "@/lib/api";
 
 interface Question {
   id: string;
@@ -19,19 +25,27 @@ export default function QuestionnairePage() {
   const router = useRouter();
   const { token } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [existingAnswers, setExistingAnswers] = useState<UserAnswer[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchQuestions = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/questions`);
-        if (!response.ok) {
+        // Fetch questions
+        const questionsResponse = await fetch(`${API_BASE_URL}/questions`);
+        if (!questionsResponse.ok) {
           throw new Error("Failed to fetch questions");
         }
-        const data = await response.json();
-        setQuestions(data.questions);
+        const questionsData = await questionsResponse.json();
+        setQuestions(questionsData.questions);
+
+        // Fetch existing answers if user is authenticated
+        if (token) {
+          const answersData = await getUserAnswers(token);
+          setExistingAnswers(answersData.answers);
+        }
       } catch (err) {
         setLoadError(
           err instanceof Error ? err.message : "An unknown error occurred",
@@ -41,8 +55,8 @@ export default function QuestionnairePage() {
       }
     };
 
-    fetchQuestions();
-  }, []);
+    fetchData();
+  }, [token]);
 
   const handleSubmit = async (answers: Record<string, string>) => {
     if (!token) {
@@ -53,18 +67,11 @@ export default function QuestionnairePage() {
     }
 
     try {
-      console.log("Submitting answers:", answers);
       const formattedAnswers = Object.entries(answers).map(
         ([questionId, answerText]) => ({
           question_id: questionId,
           answer_text: answerText,
         }),
-      );
-
-      console.log("Formatted answers:", formattedAnswers);
-      console.log(
-        "API URL:",
-        `${process.env.NEXT_PUBLIC_API_URL}/answers/submit`,
       );
 
       const response = await fetch(`${API_BASE_URL}/answers/submit`, {
@@ -76,16 +83,11 @@ export default function QuestionnairePage() {
         body: JSON.stringify({ answers: formattedAnswers }),
       });
 
-      console.log("Response status:", response.status);
-
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Error response:", errorText);
         throw new Error(`Failed to submit answers: ${response.status}`);
       }
-
-      const result = await response.json();
-      console.log("Submit result:", result);
 
       // Redirect to analysis page
       router.push("/analysis");
@@ -100,10 +102,29 @@ export default function QuestionnairePage() {
     }
   };
 
+  const handleSaveIndividual = async (
+    questionId: string,
+    answerText: string,
+  ) => {
+    if (!token) {
+      throw new Error("認証トークンが見つかりません");
+    }
+
+    await updateSingleAnswer(questionId, answerText, token);
+  };
+
+  const handleGetFeedback = async (questionId: string, answerText: string) => {
+    if (!token) {
+      throw new Error("認証トークンが見つかりません");
+    }
+
+    return await getAnswerFeedback(questionId, answerText, token);
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-xl">Loading questions...</div>
+        <div className="text-xl">読み込み中...</div>
       </div>
     );
   }
@@ -111,7 +132,7 @@ export default function QuestionnairePage() {
   if (loadError) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-xl text-red-500">Error: {loadError}</div>
+        <div className="text-xl text-red-500">エラー: {loadError}</div>
       </div>
     );
   }
@@ -121,18 +142,26 @@ export default function QuestionnairePage() {
       <div className="container mx-auto px-4 py-12 max-w-4xl">
         <div className="mb-12">
           <h1 className="text-4xl font-bold text-foreground mb-4">
-            自己分析質問
+            {existingAnswers.length > 0 ? "質問回答の編集" : "質問に回答"}
           </h1>
           <p className="text-lg text-foreground/70">
-            以下の質問に回答してください。回答内容を元に、あなたの強みや価値観を分析します。
+            {existingAnswers.length > 0
+              ? "回答を編集して、一問ずつ保存できます。保存すると自動的に分析が更新されます。"
+              : "以下の質問に回答してください。すべての質問に回答後、送信ボタンをクリックしてください。"}
           </p>
         </div>
         {submitError && (
-          <div className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4">
-            <p className="text-red-700">エラー: {submitError}</p>
+          <div className="mb-6 rounded-lg bg-red-50 p-4 text-red-700">
+            {submitError}
           </div>
         )}
-        <QuestionnaireForm questions={questions} onSubmit={handleSubmit} />
+        <QuestionnaireForm
+          questions={questions}
+          existingAnswers={existingAnswers}
+          onSubmit={handleSubmit}
+          onSaveIndividual={handleSaveIndividual}
+          onGetFeedback={handleGetFeedback}
+        />
       </div>
     </ProtectedRoute>
   );

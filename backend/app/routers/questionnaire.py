@@ -160,3 +160,69 @@ def get_analysis(
         raise HTTPException(status_code=404, detail="Analysis not found")
 
     return analysis_result.result_data
+
+
+@router.post(
+    "/answers/{question_id}/feedback", response_model=schemas.AnswerFeedbackResponse
+)
+def get_answer_feedback(
+    question_id: UUID,
+    request: schemas.AnswerFeedbackRequest,
+    _: models.User = Depends(get_current_user),  # noqa: B008
+    db: Session = Depends(get_db),  # noqa: B008
+):
+    """
+    回答に対するAIフィードバックを生成
+    """
+    import openai
+
+    # Fetch question
+    question = db.get(models.Question, question_id)
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+
+    # Create prompt for feedback
+    prompt = (
+        f"あなたは自己分析の専門家です。以下の質問に対するユーザーの回答を評価し、\n"
+        f"より具体的で詳細な回答にするためのアドバイスを提供してください。\n\n"
+        f"質問: {question.question_text}\n"
+        f"回答: {request.answer_text}\n\n"
+        f"以下の観点でフィードバックを提供してください:\n"
+        f"1. 具体性: 抽象的な表現を具体例に置き換える提案\n"
+        f"2. 深掘り: より詳細な情報を引き出す質問\n"
+        f"3. 強みの明確化: 回答から読み取れる強みと、さらに強調できる点\n\n"
+        f"フィードバックは建設的で、ユーザーが改善しやすい形で提供してください。\n"
+        f"日本語で回答してください。"
+    )
+    try:
+        # Call OpenAI API
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+    except Exception as e:
+        # Log full error for debugging (in production, use proper logging)
+        import logging
+
+        logging.error(f"Failed to generate feedback: {e!s}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate feedback",
+        ) from e
+
+    feedback_text = response.choices[0].message.content
+
+    # Extract suggestions (simple split by newline for now)
+    suggestions = [
+        line.strip("- ").strip()
+        for line in feedback_text.split("\n")
+        if line.strip().startswith("-") or line.strip().startswith("•")
+    ]
+
+    return {
+        "feedback": feedback_text,
+        "suggestions": suggestions
+        if suggestions
+        else ["より具体的な例を追加してください"],
+    }
