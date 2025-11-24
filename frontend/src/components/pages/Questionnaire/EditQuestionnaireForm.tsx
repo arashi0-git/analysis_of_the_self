@@ -29,21 +29,24 @@ export default function EditQuestionnaireForm({
   existingAnswers,
   onSave,
 }: EditQuestionnaireFormProps) {
-  const [answers, setAnswers] = useState<Record<string, string>>(() => {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [savingStates, setSavingStates] = useState<Record<string, boolean>>({});
+  const [savedStates, setSavedStates] = useState<Record<string, boolean>>({});
+  const timeoutsRef = useRef<Record<string, number>>({});
+
+  // Sync existingAnswers to local state
+  useEffect(() => {
     const initialAnswers: Record<string, string> = {};
     existingAnswers.forEach((answer) => {
       initialAnswers[answer.question_id] = answer.answer_text;
     });
-    return initialAnswers;
-  });
+    setAnswers(initialAnswers);
+  }, [existingAnswers]);
 
-  const [savingStates, setSavingStates] = useState<Record<string, boolean>>({});
-  const [savedStates, setSavedStates] = useState<Record<string, boolean>>({});
-  const timeoutsRef = useRef<number[]>([]);
-
+  // Cleanup all timers on unmount
   useEffect(() => {
     return () => {
-      timeoutsRef.current.forEach((id) => clearTimeout(id));
+      Object.values(timeoutsRef.current).forEach((id) => clearTimeout(id));
     };
   }, []);
 
@@ -64,11 +67,18 @@ export default function EditQuestionnaireForm({
     try {
       await onSave(questionId, answerText);
       setSavedStates((prev) => ({ ...prev, [questionId]: true }));
-      // Clear saved state after 2 seconds
+
+      // Clear any existing timer for this question
+      if (timeoutsRef.current[questionId]) {
+        clearTimeout(timeoutsRef.current[questionId]);
+      }
+
+      // Set new timer to clear saved state after 2 seconds
       const timeoutId = window.setTimeout(() => {
         setSavedStates((prev) => ({ ...prev, [questionId]: false }));
+        delete timeoutsRef.current[questionId];
       }, 2000);
-      timeoutsRef.current.push(timeoutId);
+      timeoutsRef.current[questionId] = timeoutId;
     } catch (error) {
       console.error("Failed to save answer:", error);
       alert(

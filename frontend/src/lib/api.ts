@@ -87,17 +87,20 @@ export async function getUserAnswers(
     clearTimeout(timeoutId);
 
     if (!response.ok) {
+      // Log detailed error for debugging
       const errorText = await response.text();
-      throw new Error(
+      console.error(
         `Failed to get user answers: ${response.status} ${errorText}`,
       );
+      // Throw user-friendly error message
+      throw new Error("回答の取得に失敗しました。もう一度お試しください。");
     }
 
     return await response.json();
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
-      throw new Error("Request timeout: The server took too long to respond");
+      throw new Error("サーバーの応答が遅すぎます。もう一度お試しください。");
     }
     throw error;
   }
@@ -107,7 +110,7 @@ export async function updateSingleAnswer(
   questionId: string,
   answerText: string,
   token: string,
-): Promise<{ status: string; message: string }> {
+): Promise<void> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -124,17 +127,19 @@ export async function updateSingleAnswer(
     clearTimeout(timeoutId);
 
     if (!response.ok) {
+      // Log detailed error for debugging
       const errorText = await response.text();
-      throw new Error(
-        `Failed to update answer: ${response.status} ${errorText}`,
-      );
+      console.error(`Failed to update answer: ${response.status} ${errorText}`);
+      // Throw user-friendly error message
+      throw new Error("回答の更新に失敗しました。もう一度お試しください。");
     }
 
-    return await response.json();
+    // Response body is not used, just ensure request succeeded
+    await response.json();
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
-      throw new Error("Request timeout: The server took too long to respond");
+      throw new Error("サーバーの応答が遅すぎます。もう一度お試しください。");
     }
     throw error;
   }
