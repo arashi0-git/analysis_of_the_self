@@ -120,7 +120,7 @@ export default function AnalysisPage() {
             <AnalysisDisplay data={analysisData} />
             <div className="mt-12 flex gap-4 justify-center">
               <Link
-                href="/questionnaire/edit"
+                href="/questionnaire"
                 className="rounded-lg bg-secondary px-8 py-3 font-semibold text-white hover:bg-secondary/90 transition-colors"
               >
                 回答を編集
