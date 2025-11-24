@@ -51,6 +51,10 @@ class UserAnswerSubmit(BaseModel):
     answers: list[UserAnswerCreate]
 
 
+class SingleAnswerUpdate(BaseModel):
+    answer_text: str = Field(..., min_length=1)
+
+
 class UserAnswer(UserAnswerCreate):
     id: UUID
     user_id: UUID
@@ -58,6 +62,10 @@ class UserAnswer(UserAnswerCreate):
 
     class Config:
         from_attributes = True
+
+
+class UserAnswersResponse(BaseModel):
+    answers: list[UserAnswer]
 
 
 class AnalysisResult(BaseModel):

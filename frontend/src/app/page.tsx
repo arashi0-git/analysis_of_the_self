@@ -1,87 +1,156 @@
-import Image from "next/image";
+"use client";
+
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
+            あなたの
+            <span className="text-primary">強み</span>と
+            <span className="text-secondary">価値観</span>
+            を発見
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-xl text-foreground/70 mb-12 max-w-2xl mx-auto">
+            AIを活用した自己分析ツール。質問に答えるだけで、あなたの強みや価値観を分析し、
+            パーソナライズされたアドバイスを提供します。
           </p>
-        </div>
-        <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-          <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-            Get started by editing&nbsp;
-            <code className="font-mono font-bold">src/app/page.tsx</code>
-          </p>
-          <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center gap-4 bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-            <a
-              className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-              href="/questionnaire"
-              rel="noopener noreferrer"
-            >
-              質問に回答する
-            </a>
-            <a
-              className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-              href="/chat"
-              rel="noopener noreferrer"
-            >
-              Go to Chat
-            </a>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/questionnaire"
+                  className="px-8 py-4 bg-primary hover:bg-primary-hover text-white rounded-lg font-semibold transition-colors shadow-lg"
+                >
+                  質問に回答する
+                </Link>
+                <Link
+                  href="/analysis"
+                  className="px-8 py-4 bg-muted hover:bg-border text-foreground rounded-lg font-semibold transition-colors"
+                >
+                  分析結果を見る
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/register"
+                  className="px-8 py-4 bg-primary hover:bg-primary-hover text-white rounded-lg font-semibold transition-colors shadow-lg"
+                >
+                  無料で始める
+                </Link>
+                <Link
+                  href="/login"
+                  className="px-8 py-4 bg-muted hover:bg-border text-foreground rounded-lg font-semibold transition-colors"
+                >
+                  ログイン
+                </Link>
+              </>
+            )}
           </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Features Section */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="bg-background p-6 rounded-lg shadow-sm border border-border">
+            <div className="text-3xl mb-4" aria-hidden="true">
+              📝
+            </div>
+            <h3 className="text-xl font-semibold mb-2">質問に回答</h3>
+            <p className="text-foreground/70">
+              あなた自身について、いくつかの質問に答えてください。
+            </p>
+          </div>
+
+          <div className="bg-background p-6 rounded-lg shadow-sm border border-border">
+            <div className="text-3xl mb-4" aria-hidden="true">
+              🤖
+            </div>
+            <h3 className="text-xl font-semibold mb-2">AI分析</h3>
+            <p className="text-foreground/70">
+              AIがあなたの回答を分析し、強みや価値観を抽出します。
+            </p>
+          </div>
+
+          <div className="bg-background p-6 rounded-lg shadow-sm border border-border">
+            <div className="text-3xl mb-4" aria-hidden="true">
+              💬
+            </div>
+            <h3 className="text-xl font-semibold mb-2">チャットで深掘り</h3>
+            <p className="text-foreground/70">
+              AIとチャットして、さらに深く自己理解を深めましょう。
+            </p>
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">
+            使い方はシンプル
+          </h2>
+          <ol className="space-y-6">
+            <li className="flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+                1
+              </div>
+              <div>
+                <h4 className="font-semibold mb-1">アカウント作成</h4>
+                <p className="text-foreground/70">
+                  メールアドレスで簡単に登録できます。
+                </p>
+              </div>
+            </li>
+
+            <li className="flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+                2
+              </div>
+              <div>
+                <h4 className="font-semibold mb-1">質問に回答</h4>
+                <p className="text-foreground/70">
+                  あなた自身について、いくつかの質問に答えてください。
+                </p>
+              </div>
+            </li>
+
+            <li className="flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+                3
+              </div>
+              <div>
+                <h4 className="font-semibold mb-1">分析結果を確認</h4>
+                <p className="text-foreground/70">
+                  AIが分析した、あなたの強みや価値観を確認しましょう。
+                </p>
+              </div>
+            </li>
+
+            <li className="flex gap-4">
+              <div className="flex-shrink-0 w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold">
+                4
+              </div>
+              <div>
+                <h4 className="font-semibold mb-1">AIとチャット</h4>
+                <p className="text-foreground/70">
+                  さらに深く自己理解を深めたい場合は、AIとチャットしてみましょう。
+                </p>
+              </div>
+            </li>
+          </ol>
+        </div>
+      </section>
     </div>
   );
 }

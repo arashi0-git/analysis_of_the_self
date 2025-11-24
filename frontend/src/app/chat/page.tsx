@@ -52,20 +52,23 @@ export default function ChatPage() {
 
   return (
     <ProtectedRoute>
-      <div className="h-screen flex flex-col">
-        <header className="bg-white border-b border-gray-200 p-4">
-          <h1 className="text-xl font-bold text-gray-800">
-            AI Career Counselor
+      <div className="container mx-auto px-4 py-12 max-w-5xl">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
+            AIチャット
           </h1>
-        </header>
-        <main className="flex-1 overflow-hidden">
+          <p className="text-lg text-foreground/70">
+            あなたの自己分析結果をもとに、AIがパーソナライズされたアドバイスを提供します。
+          </p>
+        </div>
+        <div className="rounded-lg border border-border bg-background shadow-sm">
           <ChatWindow
             messages={messages}
             setMessages={setMessages}
             onSendMessage={handleSendMessage}
             isLoading={isLoading}
           />
-        </main>
+        </div>
       </div>
     </ProtectedRoute>
   );

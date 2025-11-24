@@ -1,12 +1,13 @@
 "use client";
 
-import {
+import React, {
   createContext,
   useContext,
-  useEffect,
   useState,
+  useEffect,
   ReactNode,
 } from "react";
+import { API_BASE_URL } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 interface User {
@@ -45,14 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = async (authToken: string) => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
         },
-      );
+      });
 
       if (response.ok) {
         const userData = await response.json();

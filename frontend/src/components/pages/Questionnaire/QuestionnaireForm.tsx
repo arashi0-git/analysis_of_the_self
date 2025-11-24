@@ -69,15 +69,15 @@ export default function QuestionnaireForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {questions.map((question) => (
         <div
           key={question.id}
-          className="rounded-lg border border-gray-200 p-6"
+          className="rounded-lg border border-border bg-background p-6 shadow-sm"
         >
           <label
             htmlFor={question.id}
-            className="mb-2 block text-lg font-semibold"
+            className="mb-3 block text-lg font-semibold text-foreground"
           >
             {question.question_text}
           </label>
@@ -85,10 +85,10 @@ export default function QuestionnaireForm({
             id={question.id}
             value={answers[question.id] || ""}
             onChange={(e) => handleChange(question.id, e.target.value)}
-            className={`w-full rounded-md border p-3 ${
+            className={`w-full rounded-md border p-3 transition-colors ${
               errors[question.id]
                 ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                : "border-border focus:border-primary focus:ring-primary"
             }`}
             rows={4}
             placeholder="ここに回答を入力してください..."
@@ -99,14 +99,14 @@ export default function QuestionnaireForm({
         </div>
       ))}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-4">
         <button
           type="submit"
           disabled={submitting}
-          className={`rounded-lg px-8 py-3 font-semibold text-white transition-colors ${
+          className={`rounded-lg px-8 py-3 font-semibold text-white transition-colors shadow-lg ${
             submitting
               ? "cursor-not-allowed bg-gray-400"
-              : "bg-blue-600 hover:bg-blue-700"
+              : "bg-primary hover:bg-primary-hover"
           }`}
         >
           {submitting ? "送信中..." : "回答を送信"}

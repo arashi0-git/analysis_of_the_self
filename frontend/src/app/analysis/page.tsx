@@ -5,6 +5,7 @@ import Link from "next/link";
 import AnalysisDisplay from "@/components/pages/Analysis/AnalysisDisplay";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from "@/lib/api";
 
 interface StrengthItem {
   strength: string;
@@ -34,14 +35,11 @@ export default function AnalysisPage() {
       if (!token) return;
 
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/analysis`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        const response = await fetch(`${API_BASE_URL}/analysis`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -126,8 +124,15 @@ export default function AnalysisPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-8 text-4xl font-bold">あなたの自己分析結果</h1>
+      <div className="container mx-auto px-4 py-12 max-w-5xl">
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
+            あなたの自己分析結果
+          </h1>
+          <p className="text-lg text-foreground/70">
+            AIが分析した、あなたの強みや価値観をご確認ください。
+          </p>
+        </div>
         <AnalysisDisplay data={analysisData} />
       </div>
     </ProtectedRoute>

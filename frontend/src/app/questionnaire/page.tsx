@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import QuestionnaireForm from "@/components/pages/Questionnaire/QuestionnaireForm";
 import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from "@/lib/api";
 
 interface Question {
   id: string;
@@ -25,9 +26,7 @@ export default function QuestionnairePage() {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/questions`,
-        );
+        const response = await fetch(`${API_BASE_URL}/questions`);
         if (!response.ok) {
           throw new Error("Failed to fetch questions");
         }
@@ -68,17 +67,14 @@ export default function QuestionnairePage() {
         `${process.env.NEXT_PUBLIC_API_URL}/answers/submit`,
       );
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/answers/submit`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ answers: formattedAnswers }),
+      const response = await fetch(`${API_BASE_URL}/answers/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ answers: formattedAnswers }),
+      });
 
       console.log("Response status:", response.status);
 
@@ -122,16 +118,20 @@ export default function QuestionnairePage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-8 text-4xl font-bold">自己分析質問</h1>
+      <div className="container mx-auto px-4 py-12 max-w-4xl">
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
+            自己分析質問
+          </h1>
+          <p className="text-lg text-foreground/70">
+            以下の質問に回答してください。回答内容を元に、あなたの強みや価値観を分析します。
+          </p>
+        </div>
         {submitError && (
-          <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-4">
+          <div className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4">
             <p className="text-red-700">エラー: {submitError}</p>
           </div>
         )}
-        <p className="mb-8 text-gray-600">
-          以下の質問に回答してください。回答内容を元に、あなたの強みや価値観を分析します。
-        </p>
         <QuestionnaireForm questions={questions} onSubmit={handleSubmit} />
       </div>
     </ProtectedRoute>
