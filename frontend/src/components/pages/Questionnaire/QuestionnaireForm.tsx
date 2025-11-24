@@ -45,16 +45,22 @@ export default function QuestionnaireForm({
   >({});
   const timeoutsRef = useRef<Record<string, number>>({});
 
-  const hasExistingAnswers = existingAnswers && existingAnswers.length > 0;
+  const hasExistingAnswers = !!existingAnswers?.length;
 
   // Initialize answers from existing answers
   useEffect(() => {
     if (existingAnswers && existingAnswers.length > 0) {
-      const initialAnswers: Record<string, string> = {};
-      existingAnswers.forEach((answer) => {
-        initialAnswers[answer.question_id] = answer.answer_text;
+      setAnswers((prev) => {
+        // If user has already started typing (answers is not empty), don't overwrite
+        if (Object.keys(prev).length > 0) {
+          return prev;
+        }
+        const initialAnswers: Record<string, string> = {};
+        existingAnswers.forEach((answer) => {
+          initialAnswers[answer.question_id] = answer.answer_text;
+        });
+        return initialAnswers;
       });
-      setAnswers(initialAnswers);
     }
   }, [existingAnswers]);
 
@@ -127,6 +133,12 @@ export default function QuestionnaireForm({
     try {
       await onSaveIndividual(questionId, answerText);
       setSavedStates((prev) => ({ ...prev, [questionId]: true }));
+      // Clear error on success
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[questionId];
+        return newErrors;
+      });
 
       // Clear any existing timer for this question
       if (timeoutsRef.current[questionId]) {
@@ -176,6 +188,12 @@ export default function QuestionnaireForm({
         ...prev,
         [questionId]: { loading: false, data: feedback },
       }));
+      // Clear error on success
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[questionId];
+        return newErrors;
+      });
     } catch (error) {
       console.error("Failed to get feedback:", error);
       setFeedbackStates((prev) => ({
@@ -264,9 +282,24 @@ export default function QuestionnaireForm({
               <h4 className="font-semibold text-blue-900 mb-2">
                 💡 AI からのアドバイス
               </h4>
-              <p className="text-sm text-blue-800 whitespace-pre-wrap">
+              <p className="text-sm text-blue-800 whitespace-pre-wrap mb-3">
                 {feedbackStates[question.id]?.data?.feedback || ""}
               </p>
+              {feedbackStates[question.id]?.data?.suggestions &&
+                feedbackStates[question.id]!.data!.suggestions.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-blue-200">
+                    <h5 className="text-xs font-semibold text-blue-900 mb-1">
+                      具体的な改善案:
+                    </h5>
+                    <ul className="list-disc list-inside text-sm text-blue-800 space-y-1">
+                      {feedbackStates[question.id]!.data!.suggestions.map(
+                        (suggestion, index) => (
+                          <li key={index}>{suggestion}</li>
+                        ),
+                      )}
+                    </ul>
+                  </div>
+                )}
             </div>
           )}
         </div>

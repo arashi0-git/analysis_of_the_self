@@ -168,7 +168,7 @@ def get_analysis(
 def get_answer_feedback(
     question_id: UUID,
     request: schemas.AnswerFeedbackRequest,
-    _: models.User = Depends(get_current_user),  # noqa: ARG001, B008
+    _: models.User = Depends(get_current_user),  # noqa: B008
     db: Session = Depends(get_db),  # noqa: B008
 ):
     """
@@ -204,22 +204,6 @@ def get_answer_feedback(
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
         )
-
-        feedback_text = response.choices[0].message.content
-
-        # Extract suggestions (simple split by newline for now)
-        suggestions = [
-            line.strip("- ").strip()
-            for line in feedback_text.split("\n")
-            if line.strip().startswith("-") or line.strip().startswith("•")
-        ]
-
-        return {
-            "feedback": feedback_text,
-            "suggestions": suggestions
-            if suggestions
-            else ["より具体的な例を追加してください"],
-        }
     except Exception as e:
         # Log full error for debugging (in production, use proper logging)
         import logging
@@ -229,3 +213,19 @@ def get_answer_feedback(
             status_code=500,
             detail="Failed to generate feedback",
         ) from e
+
+    feedback_text = response.choices[0].message.content
+
+    # Extract suggestions (simple split by newline for now)
+    suggestions = [
+        line.strip("- ").strip()
+        for line in feedback_text.split("\n")
+        if line.strip().startswith("-") or line.strip().startswith("•")
+    ]
+
+    return {
+        "feedback": feedback_text,
+        "suggestions": suggestions
+        if suggestions
+        else ["より具体的な例を追加してください"],
+    }
