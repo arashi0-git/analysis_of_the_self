@@ -2,6 +2,7 @@
 Security utilities for JWT token generation and password hashing.
 """
 
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -11,15 +12,18 @@ from passlib.context import CryptContext
 # Password hashing context
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
+
 # JWT settings
-SECRET_KEY = "your-secret-key-change-this-in-production"  # TODO: Move to env
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY environment variable must be set")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def hash_password(password: str) -> str:
     """
-    Hash a password using bcrypt.
+    Hash a password using Argon2.
 
     Args:
         password: Plain text password

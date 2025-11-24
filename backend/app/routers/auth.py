@@ -6,6 +6,7 @@ from app.database import get_db
 from app.dependencies.auth import get_current_user
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -13,11 +14,21 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model=schemas.Token)
 def register(user: schemas.UserRegister, db: Session = Depends(get_db)):  # noqa: B008
+    # Check if user exists (optimization, not strict prevention due to race condition)
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(
+            status_code=400, detail="Email already registered"
+        ) from None
 
-    new_user = crud.create_user(db, user=user)
+    try:
+        new_user = crud.create_user(db, user=user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400, detail="Email already registered"
+        ) from None
+
     access_token = security.create_access_token(data={"sub": new_user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 

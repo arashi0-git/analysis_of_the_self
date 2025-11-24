@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class MemoCreate(BaseModel):
@@ -88,13 +88,15 @@ class AnalysisResponse(AnalysisResultContent):
 
 
 class UserRegister(BaseModel):
-    email: str
-    password: str
+    email: EmailStr
+    password: str = Field(
+        ..., min_length=8, description="Password must be at least 8 characters"
+    )
     name: str
 
 
 class UserLogin(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
