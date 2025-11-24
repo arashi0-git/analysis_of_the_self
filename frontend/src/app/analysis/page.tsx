@@ -126,8 +126,15 @@ export default function AnalysisPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-8 text-4xl font-bold">あなたの自己分析結果</h1>
+      <div className="container mx-auto px-4 py-12 max-w-5xl">
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
+            あなたの自己分析結果
+          </h1>
+          <p className="text-lg text-foreground/70">
+            AIが分析した、あなたの強みや価値観をご確認ください。
+          </p>
+        </div>
         <AnalysisDisplay data={analysisData} />
       </div>
     </ProtectedRoute>

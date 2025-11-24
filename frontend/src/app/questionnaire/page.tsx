@@ -122,16 +122,20 @@ export default function QuestionnairePage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-8 text-4xl font-bold">自己分析質問</h1>
+      <div className="container mx-auto px-4 py-12 max-w-4xl">
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
+            自己分析質問
+          </h1>
+          <p className="text-lg text-foreground/70">
+            以下の質問に回答してください。回答内容を元に、あなたの強みや価値観を分析します。
+          </p>
+        </div>
         {submitError && (
-          <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-4">
+          <div className="mb-6 rounded-lg border border-red-300 bg-red-50 p-4">
             <p className="text-red-700">エラー: {submitError}</p>
           </div>
         )}
-        <p className="mb-8 text-gray-600">
-          以下の質問に回答してください。回答内容を元に、あなたの強みや価値観を分析します。
-        </p>
         <QuestionnaireForm questions={questions} onSubmit={handleSubmit} />
       </div>
     </ProtectedRoute>
