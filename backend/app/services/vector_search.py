@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from app import models, schemas
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -6,6 +8,7 @@ from sqlalchemy.orm import Session
 def search_similar_items(
     db: Session,
     query_embedding: list[float],
+    user_id: UUID,
     limit: int = 5,
     similarity_threshold: float = 0.0,
 ) -> list[schemas.SearchResult]:
@@ -16,6 +19,7 @@ def search_similar_items(
     Args:
         db: Database session
         query_embedding: The embedding vector of the query text
+        user_id: The user ID to filter results by
         limit: Maximum number of results to return
         similarity_threshold: Minimum similarity score (0-1) to include in results
 
@@ -38,6 +42,7 @@ def search_similar_items(
 
     stmt = (
         select(models.RagEmbedding, weighted_score.label("score"))
+        .filter(models.RagEmbedding.user_id == user_id)
         .filter(weighted_score >= similarity_threshold)
         .order_by(weighted_score.desc())
         .limit(limit)

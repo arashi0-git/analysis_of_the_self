@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import QuestionnaireForm from "@/components/pages/Questionnaire/QuestionnaireForm";
+import ProtectedRoute from "@/components/shared/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Question {
   id: string;
@@ -14,6 +16,7 @@ interface Question {
 
 export default function QuestionnairePage() {
   const router = useRouter();
+  const { token } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -43,6 +46,13 @@ export default function QuestionnairePage() {
   }, []);
 
   const handleSubmit = async (answers: Record<string, string>) => {
+    if (!token) {
+      setSubmitError(
+        "認証トークンが見つかりません。再度ログインしてください。",
+      );
+      return;
+    }
+
     try {
       console.log("Submitting answers:", answers);
       const formattedAnswers = Object.entries(answers).map(
@@ -64,6 +74,7 @@ export default function QuestionnairePage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ answers: formattedAnswers }),
         },
@@ -110,17 +121,19 @@ export default function QuestionnairePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-4xl font-bold">自己分析質問</h1>
-      {submitError && (
-        <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-4">
-          <p className="text-red-700">エラー: {submitError}</p>
-        </div>
-      )}
-      <p className="mb-8 text-gray-600">
-        以下の質問に回答してください。回答内容を元に、あなたの強みや価値観を分析します。
-      </p>
-      <QuestionnaireForm questions={questions} onSubmit={handleSubmit} />
-    </div>
+    <ProtectedRoute>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="mb-8 text-4xl font-bold">自己分析質問</h1>
+        {submitError && (
+          <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-4">
+            <p className="text-red-700">エラー: {submitError}</p>
+          </div>
+        )}
+        <p className="mb-8 text-gray-600">
+          以下の質問に回答してください。回答内容を元に、あなたの強みや価値観を分析します。
+        </p>
+        <QuestionnaireForm questions={questions} onSubmit={handleSubmit} />
+      </div>
+    </ProtectedRoute>
   );
 }

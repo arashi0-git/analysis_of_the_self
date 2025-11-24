@@ -10,15 +10,19 @@ export interface AnswerRequest {
   query_text: string;
 }
 
-export async function generateAnswer(query: string): Promise<GeneratedAnswer> {
+export async function generateAnswer(
+  query: string,
+  token: string,
+): Promise<GeneratedAnswer> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒のタイムアウト
 
   try {
-    const response = await fetch(`${API_BASE_URL}/answer`, {
+    const response = await fetch(`${API_BASE_URL}/chat/answer`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ query_text: query } as AnswerRequest),
       signal: controller.signal,
