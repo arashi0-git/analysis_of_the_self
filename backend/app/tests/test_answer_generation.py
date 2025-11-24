@@ -33,7 +33,7 @@ def test_generate_answer_success(client):
         mock_llm.return_value = mock_answer
 
         # Execute request
-        response = client.post("/answer", json={"query_text": query_text})
+        response = client.post("/chat/answer", json={"query_text": query_text})
 
         # Verify response
         assert response.status_code == 200

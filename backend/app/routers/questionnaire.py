@@ -168,7 +168,7 @@ def get_analysis(
 def get_answer_feedback(
     question_id: UUID,
     request: schemas.AnswerFeedbackRequest,
-    current_user: models.User = Depends(get_current_user),  # noqa: B008
+    _: models.User = Depends(get_current_user),  # noqa: ARG001, B008
     db: Session = Depends(get_db),  # noqa: B008
 ):
     """
@@ -197,7 +197,6 @@ def get_answer_feedback(
 フィードバックは建設的で、ユーザーが改善しやすい形で提供してください。
 日本語で回答してください。"""
     )
-
     try:
         # Call OpenAI API
         response = openai.chat.completions.create(
@@ -222,6 +221,11 @@ def get_answer_feedback(
             else ["より具体的な例を追加してください"],
         }
     except Exception as e:
+        # Log full error for debugging (in production, use proper logging)
+        import logging
+
+        logging.error(f"Failed to generate feedback: {e!s}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail=f"Failed to generate feedback: {str(e)}"
+            status_code=500,
+            detail="Failed to generate feedback",
         ) from e

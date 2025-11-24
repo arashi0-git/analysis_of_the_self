@@ -72,7 +72,7 @@ export async function generateAnswer(
 
 export async function getUserAnswers(
   token: string,
-): Promise<UserAnswersResponse> {
+): Promise<{ answers: UserAnswer[] }> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -86,24 +86,26 @@ export async function getUserAnswers(
     });
     clearTimeout(timeoutId);
 
+    // 404 means user has no answers yet (first-time user)
+    if (response.status === 404) {
+      return { answers: [] };
+    }
+
     if (!response.ok) {
-      // Log detailed error for debugging
       const errorText = await response.text();
-      console.error(
-        `Failed to get user answers: ${response.status} ${errorText}`,
-      );
-      // Throw user-friendly error message
+      console.error(`Failed to get answers: ${response.status} ${errorText}`);
       throw new Error("回答の取得に失敗しました。もう一度お試しください。");
     }
 
     const data = await response.json();
 
-    // Validate response format
+    // レスポンス形式の検証
     if (!data || !Array.isArray(data.answers)) {
-      throw new Error("Invalid response format from server");
+      console.error("Invalid response format from getUserAnswers");
+      throw new Error("サーバーからの応答形式が不正です。");
     }
 
-    return data as UserAnswersResponse;
+    return data;
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
@@ -185,7 +187,18 @@ export async function getAnswerFeedback(
       );
     }
 
-    return await response.json();
+    const data = (await response.json()) as AnswerFeedbackResponse;
+
+    // レスポンス形式の基本的な検証
+    if (
+      !data ||
+      typeof data.feedback !== "string" ||
+      !Array.isArray(data.suggestions)
+    ) {
+      throw new Error("サーバーからのフィードバック形式が不正です。");
+    }
+
+    return data;
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {

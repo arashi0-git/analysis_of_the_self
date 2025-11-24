@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, type FormEvent } from "react";
+import type { UserAnswer, AnswerFeedbackResponse } from "@/lib/api";
 
 interface Question {
   id: string;
@@ -8,14 +9,6 @@ interface Question {
   question_text: string;
   display_order: number;
   weight: number;
-}
-
-interface UserAnswer {
-  id: string;
-  user_id: string;
-  question_id: string;
-  answer_text: string;
-  embedding_id: string | null;
 }
 
 interface QuestionnaireFormProps {
@@ -26,7 +19,7 @@ interface QuestionnaireFormProps {
   onGetFeedback?: (
     questionId: string,
     answerText: string,
-  ) => Promise<{ feedback: string; suggestions: string[] }>;
+  ) => Promise<AnswerFeedbackResponse>;
 }
 
 export default function QuestionnaireForm({

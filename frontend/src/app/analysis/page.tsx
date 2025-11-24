@@ -108,6 +108,13 @@ export default function AnalysisPage() {
         ) : error ? (
           <div className="text-center py-12">
             <div className="text-xl text-red-500 mb-4">{error}</div>
+            <button
+              onClick={() => window.location.reload()}
+              className="mb-4 rounded-lg bg-primary px-6 py-2 font-semibold text-white hover:bg-primary/90 transition-colors"
+            >
+              再読み込み
+            </button>
+            <div className="text-sm text-foreground/60 mb-2">または</div>
             <Link
               href="/questionnaire"
               className="text-primary hover:underline"

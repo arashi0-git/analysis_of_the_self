@@ -10,6 +10,7 @@ import {
   getUserAnswers,
   updateSingleAnswer,
   getAnswerFeedback,
+  type UserAnswer,
 } from "@/lib/api";
 
 interface Question {
@@ -18,14 +19,6 @@ interface Question {
   question_text: string;
   display_order: number;
   weight: number;
-}
-
-interface UserAnswer {
-  id: string;
-  user_id: string;
-  question_id: string;
-  answer_text: string;
-  embedding_id: string | null;
 }
 
 export default function QuestionnairePage() {
@@ -50,15 +43,8 @@ export default function QuestionnairePage() {
 
         // Fetch existing answers if user is authenticated
         if (token) {
-          try {
-            const answersData = await getUserAnswers(token);
-            setExistingAnswers(answersData.answers);
-          } catch (err) {
-            // 404 is expected for first-time users, ignore it
-            if (err instanceof Error && !err.message.includes("404")) {
-              console.error("Failed to fetch existing answers:", err);
-            }
-          }
+          const answersData = await getUserAnswers(token);
+          setExistingAnswers(answersData.answers);
         }
       } catch (err) {
         setLoadError(
