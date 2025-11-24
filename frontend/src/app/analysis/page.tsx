@@ -87,53 +87,53 @@ export default function AnalysisPage() {
     };
   }, [token]);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <div className="text-xl">分析結果を読み込んでいます...</div>
-        {retryCount > 0 && (
-          <div className="text-sm text-gray-600">
-            分析処理中です... ({retryCount}/10回目の確認)
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <div className="text-xl text-red-500">エラー: {error}</div>
-        <Link
-          href="/questionnaire"
-          className="rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
-        >
-          質問に回答する
-        </Link>
-      </div>
-    );
-  }
-
-  if (!analysisData) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-xl">分析結果がありません</div>
-      </div>
-    );
-  }
-
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 py-12 max-w-5xl">
+      <div className="container mx-auto px-4 py-12 max-w-4xl">
         <div className="mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            あなたの自己分析結果
-          </h1>
+          <h1 className="text-4xl font-bold text-foreground mb-4">分析結果</h1>
           <p className="text-lg text-foreground/70">
-            AIが分析した、あなたの強みや価値観をご確認ください。
+            あなたの回答を分析した結果です。
           </p>
         </div>
-        <AnalysisDisplay data={analysisData} />
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="text-xl mb-4">分析中...</div>
+            {retryCount > 0 && (
+              <div className="text-sm text-foreground/60">
+                分析結果を取得しています... ({retryCount}/10)
+              </div>
+            )}
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <div className="text-xl text-red-500 mb-4">{error}</div>
+            <Link
+              href="/questionnaire"
+              className="text-primary hover:underline"
+            >
+              質問回答ページに戻る
+            </Link>
+          </div>
+        ) : analysisData ? (
+          <>
+            <AnalysisDisplay data={analysisData} />
+            <div className="mt-12 flex gap-4 justify-center">
+              <Link
+                href="/questionnaire/edit"
+                className="rounded-lg bg-secondary px-8 py-3 font-semibold text-white hover:bg-secondary/90 transition-colors"
+              >
+                回答を編集
+              </Link>
+              <Link
+                href="/chat"
+                className="rounded-lg bg-primary px-8 py-3 font-semibold text-white hover:bg-primary-hover transition-colors"
+              >
+                チャットで深掘り
+              </Link>
+            </div>
+          </>
+        ) : null}
       </div>
     </ProtectedRoute>
   );
