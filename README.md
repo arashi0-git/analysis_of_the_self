@@ -5,16 +5,16 @@ RAG（Retrieval-Augmented Generation）とAIを活用した、自己分析・就
 ## 📸 スクリーンショット
 
 ### ホームページ
-<!-- スクリーンショットをここに配置: screenshots/home.png -->
+<img width="1470" height="797" alt="image" src="https://github.com/user-attachments/assets/5a9e55dd-aa5c-4481-94d8-0838e3d5284f" />
 
 ### 質問回答ページ（AI添削機能付き）
-<!-- スクリーンショットをここに配置: screenshots/questionnaire.png -->
+<img width="1469" height="789" alt="image" src="https://github.com/user-attachments/assets/d574ee95-a5bf-452b-96f2-4b87849114d8" />
 
 ### 分析結果ページ
-<!-- スクリーンショットをここに配置: screenshots/analysis.png -->
+<img width="1470" height="795" alt="image" src="https://github.com/user-attachments/assets/06ef8f50-6398-476c-a2e0-b120119c7026" />
 
 ### チャットページ
-<!-- スクリーンショットをここに配置: screenshots/chat.png -->
+<img width="1470" height="797" alt="image" src="https://github.com/user-attachments/assets/bda25ec1-f189-4fe9-9c86-d4638e4a05e5" />
 
 ## 🎯 主な機能
 
