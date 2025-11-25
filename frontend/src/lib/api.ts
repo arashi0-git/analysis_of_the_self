@@ -207,3 +207,165 @@ export async function getAnswerFeedback(
     throw error;
   }
 }
+
+// Episode Detail Types
+export type MethodType = "STAR" | "5W1H";
+
+export interface EpisodeDetailBase {
+  method_type: MethodType;
+  // STAR fields
+  situation?: string;
+  task?: string;
+  action?: string;
+  result?: string;
+  // 5W1H fields
+  what?: string;
+  why?: string;
+  when_detail?: string;
+  where_detail?: string;
+  who_detail?: string;
+  how_detail?: string;
+  // Common
+  summary?: string;
+}
+
+export interface EpisodeDetailResponse extends EpisodeDetailBase {
+  id: string;
+  user_id: string;
+  question_id: string;
+  ai_feedback?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EpisodeFeedbackRequest {
+  original_answer: string;
+  episode_detail: EpisodeDetailBase;
+}
+
+export interface EpisodeSummaryRequest {
+  episode_detail: EpisodeDetailBase;
+}
+
+// Episode Detail API Functions
+export async function createOrUpdateEpisodeDetail(
+  questionId: string,
+  episodeData: EpisodeDetailBase,
+): Promise<EpisodeDetailResponse> {
+  const response = await fetch(`${API_BASE_URL}/episodes/${questionId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
+    },
+    body: JSON.stringify(episodeData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to save episode detail");
+  }
+
+  return response.json();
+}
+
+export async function getEpisodeDetail(
+  questionId: string,
+): Promise<EpisodeDetailResponse | null> {
+  const response = await fetch(`${API_BASE_URL}/episodes/${questionId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to get episode detail");
+  }
+
+  return response.json();
+}
+
+export async function getEpisodeFeedback(
+  questionId: string,
+  request: EpisodeFeedbackRequest,
+): Promise<AnswerFeedbackResponse> {
+  const response = await fetch(
+    `${API_BASE_URL}/episodes/${questionId}/feedback`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to get episode feedback");
+  }
+
+  return response.json();
+}
+
+export async function generateEpisodeSummary(
+  questionId: string,
+  request: EpisodeSummaryRequest,
+): Promise<{ summary: string }> {
+  const response = await fetch(
+    `${API_BASE_URL}/episodes/${questionId}/summary`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify(request),
+    },
+  );
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to generate summary");
+  }
+
+  return response.json();
+}
+
+// Question Types
+export interface Question {
+  id: string;
+  category: string;
+  question_text: string;
+  display_order: number;
+  weight: number;
+  has_deep_dive: boolean;
+}
+
+export interface QuestionList {
+  questions: Question[];
+}
+
+// Get Questions
+export async function getQuestions(): Promise<QuestionList> {
+  const response = await fetch(`${API_BASE_URL}/questions`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${getToken()}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || "Failed to get questions");
+  }
+
+  return response.json();
+}
