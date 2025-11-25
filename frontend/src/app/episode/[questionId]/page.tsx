@@ -11,9 +11,7 @@ import {
   getEpisodeFeedback,
   generateEpisodeSummary,
   type Question,
-  type UserAnswer,
   type EpisodeDetailBase,
-  type EpisodeDetailResponse,
   type MethodType,
 } from "@/lib/api";
 
