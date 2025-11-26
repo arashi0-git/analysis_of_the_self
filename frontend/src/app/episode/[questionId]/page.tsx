@@ -91,6 +91,22 @@ export default function EpisodeDetailPage() {
   };
 
   const handleGenerateSummary = async () => {
+    // Validate that at least one field has content
+    const hasContent =
+      methodType === "STAR"
+        ? episodeDetail.situation ||
+          episodeDetail.task ||
+          episodeDetail.action ||
+          episodeDetail.result
+        : episodeDetail.what || episodeDetail.why;
+
+    if (!hasContent) {
+      setError(
+        "まとめを生成するには、少なくとも1つのフィールドに入力してください。",
+      );
+      return;
+    }
+
     try {
       setGeneratingSummary(true);
       setError("");
@@ -111,6 +127,22 @@ export default function EpisodeDetailPage() {
   };
 
   const handleGetFeedback = async () => {
+    // Validate that at least one field has content
+    const hasContent =
+      methodType === "STAR"
+        ? episodeDetail.situation ||
+          episodeDetail.task ||
+          episodeDetail.action ||
+          episodeDetail.result
+        : episodeDetail.what || episodeDetail.why;
+
+    if (!hasContent) {
+      setError(
+        "フィードバックを取得するには、少なくとも1つのフィールドに入力してください。",
+      );
+      return;
+    }
+
     try {
       setGeneratingFeedback(true);
       setError("");
@@ -134,6 +166,20 @@ export default function EpisodeDetailPage() {
   };
 
   const handleSave = async () => {
+    // Validate that at least one field has content
+    const hasContent =
+      methodType === "STAR"
+        ? episodeDetail.situation ||
+          episodeDetail.task ||
+          episodeDetail.action ||
+          episodeDetail.result
+        : episodeDetail.what || episodeDetail.why;
+
+    if (!hasContent) {
+      setError("保存するには、少なくとも1つのフィールドに入力してください。");
+      return;
+    }
+
     try {
       setSaving(true);
       setError("");

@@ -30,28 +30,36 @@ def seed_questions():
         questions = [
             {
                 "category": "childhood",
-                "question_text": "小学校時代で最も印象に残っている出来事を教えてください。",  # noqa: E501
+                "question_text": (
+                    "小学校時代で最も印象に残っている出来事を教えてください。"
+                ),
                 "display_order": 1,
                 "weight": 1.0,
                 "has_deep_dive": False,
             },
             {
                 "category": "childhood",
-                "question_text": "中学校時代で最も印象に残っている出来事を教えてください。",  # noqa: E501
+                "question_text": (
+                    "中学校時代で最も印象に残っている出来事を教えてください。"
+                ),
                 "display_order": 2,
                 "weight": 1.0,
                 "has_deep_dive": False,
             },
             {
                 "category": "childhood",
-                "question_text": "高校時代で最も印象に残っている出来事を教えてください。",  # noqa: E501
+                "question_text": (
+                    "高校時代で最も印象に残っている出来事を教えてください。"
+                ),
                 "display_order": 3,
                 "weight": 1.0,
                 "has_deep_dive": False,
             },
             {
                 "category": "student_life",
-                "question_text": "学生時代で最も力を入れて取り組んだことを教えてください。",  # noqa: E501
+                "question_text": (
+                    "学生時代で最も力を入れて取り組んだことを教えてください。"
+                ),
                 "display_order": 4,
                 "weight": 1.5,
                 "has_deep_dive": True,
@@ -72,7 +80,9 @@ def seed_questions():
             },
             {
                 "category": "future",
-                "question_text": "将来どうなりたいか、あなたの目標や夢を教えてください。",  # noqa: E501
+                "question_text": (
+                    "将来どうなりたいか、あなたの目標や夢を教えてください。"
+                ),
                 "display_order": 7,
                 "weight": 1.5,
                 "has_deep_dive": True,

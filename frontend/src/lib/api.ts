@@ -1,6 +1,14 @@
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
+// Helper function to get token from localStorage
+function getToken(): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  return localStorage.getItem("token") || "";
+}
+
 export interface GeneratedAnswer {
   reasoning: string;
   answer_text: string;
@@ -70,9 +78,7 @@ export async function generateAnswer(
   }
 }
 
-export async function getUserAnswers(
-  token: string,
-): Promise<{ answers: UserAnswer[] }> {
+export async function getUserAnswers(): Promise<{ answers: UserAnswer[] }> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -80,7 +86,7 @@ export async function getUserAnswers(
     const response = await fetch(`${API_BASE_URL}/answers`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
       signal: controller.signal,
     });
@@ -252,91 +258,187 @@ export async function createOrUpdateEpisodeDetail(
   questionId: string,
   episodeData: EpisodeDetailBase,
 ): Promise<EpisodeDetailResponse> {
-  const response = await fetch(`${API_BASE_URL}/episodes/${questionId}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${getToken()}`,
-    },
-    body: JSON.stringify(episodeData),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || "Failed to save episode detail");
+  try {
+    const response = await fetch(`${API_BASE_URL}/episodes/${questionId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: JSON.stringify(episodeData),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = "Failed to save episode detail";
+      try {
+        const error = JSON.parse(errorText);
+        errorMessage = error.detail || errorMessage;
+      } catch {
+        console.error(
+          `Failed to save episode detail: ${response.status} ${errorText}`,
+        );
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(
+        "リクエストがタイムアウトしました。もう一度お試しください。",
+      );
+    }
+    throw error;
   }
-
-  return response.json();
 }
 
 export async function getEpisodeDetail(
   questionId: string,
 ): Promise<EpisodeDetailResponse | null> {
-  const response = await fetch(`${API_BASE_URL}/episodes/${questionId}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${getToken()}`,
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-  if (response.status === 404) {
-    return null;
+  try {
+    const response = await fetch(`${API_BASE_URL}/episodes/${questionId}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = "Failed to get episode detail";
+      try {
+        const error = JSON.parse(errorText);
+        errorMessage = error.detail || errorMessage;
+      } catch {
+        console.error(
+          `Failed to get episode detail: ${response.status} ${errorText}`,
+        );
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(
+        "リクエストがタイムアウトしました。もう一度お試しください。",
+      );
+    }
+    throw error;
   }
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || "Failed to get episode detail");
-  }
-
-  return response.json();
 }
 
 export async function getEpisodeFeedback(
   questionId: string,
   request: EpisodeFeedbackRequest,
 ): Promise<AnswerFeedbackResponse> {
-  const response = await fetch(
-    `${API_BASE_URL}/episodes/${questionId}/feedback`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s for AI processing
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/episodes/${questionId}/feedback`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify(request),
+        signal: controller.signal,
       },
-      body: JSON.stringify(request),
-    },
-  );
+    );
+    clearTimeout(timeoutId);
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || "Failed to get episode feedback");
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = "Failed to get episode feedback";
+      try {
+        const error = JSON.parse(errorText);
+        errorMessage = error.detail || errorMessage;
+      } catch {
+        console.error(
+          `Failed to get episode feedback: ${response.status} ${errorText}`,
+        );
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(
+        "リクエストがタイムアウトしました(60秒)。もう一度お試しください。",
+      );
+    }
+    throw error;
   }
-
-  return response.json();
 }
 
 export async function generateEpisodeSummary(
   questionId: string,
   request: EpisodeSummaryRequest,
 ): Promise<{ summary: string }> {
-  const response = await fetch(
-    `${API_BASE_URL}/episodes/${questionId}/summary`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s for AI processing
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/episodes/${questionId}/summary`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify(request),
+        signal: controller.signal,
       },
-      body: JSON.stringify(request),
-    },
-  );
+    );
+    clearTimeout(timeoutId);
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || "Failed to generate summary");
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = "Failed to generate summary";
+      try {
+        const error = JSON.parse(errorText);
+        errorMessage = error.detail || errorMessage;
+      } catch {
+        console.error(
+          `Failed to generate summary: ${response.status} ${errorText}`,
+        );
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(
+        "リクエストがタイムアウトしました(60秒)。もう一度お試しください。",
+      );
+    }
+    throw error;
   }
-
-  return response.json();
 }
 
 // Question Types

@@ -237,7 +237,9 @@ class RagEmbedding(Base):
     source_type = Column(
         Text,
         CheckConstraint(
-            "source_type IN ('episode', 'insight', 'strength', 'memo', 'answer', 'episode_detail')"  # noqa: E501
+            "source_type IN ("
+            "'episode', 'insight', 'strength', 'memo', 'answer', 'episode_detail'"
+            ")"
         ),
         nullable=False,
     )

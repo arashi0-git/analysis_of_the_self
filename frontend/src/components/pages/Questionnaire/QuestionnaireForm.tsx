@@ -262,7 +262,7 @@ export default function QuestionnaireForm({
             </div>
           )}
 
-          {/* AI Feedback button (for questions 1-3) */}
+          {/* AI Feedback button (for questions without deep-dive) */}
           {onGetFeedback && !question.has_deep_dive && (
             <div className="mt-3">
               <button
@@ -278,7 +278,7 @@ export default function QuestionnaireForm({
             </div>
           )}
 
-          {/* Deep-dive button (for questions 4-7) */}
+          {/* Deep-dive button (for questions with deep-dive enabled) */}
           {question.has_deep_dive && (
             <div className="mt-3">
               <Link
