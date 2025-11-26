@@ -7,10 +7,44 @@ from uuid import UUID
 from app import models, schemas
 from app.database import get_db
 from app.routers.auth import get_current_user
+from app.services.embedding import get_embedding
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/episodes", tags=["episodes"])
+
+
+def _build_episode_content(episode: models.EpisodeDetail) -> str:
+    """Build content string from episode detail for embedding"""
+    parts = []
+
+    if episode.method_type == "STAR":
+        if episode.situation:
+            parts.append(f"状況: {episode.situation}")
+        if episode.task:
+            parts.append(f"課題: {episode.task}")
+        if episode.action:
+            parts.append(f"行動: {episode.action}")
+        if episode.result:
+            parts.append(f"結果: {episode.result}")
+    else:  # 5W1H
+        if episode.what:
+            parts.append(f"何を: {episode.what}")
+        if episode.why:
+            parts.append(f"なぜ: {episode.why}")
+        if episode.when_detail:
+            parts.append(f"いつ: {episode.when_detail}")
+        if episode.where_detail:
+            parts.append(f"どこで: {episode.where_detail}")
+        if episode.who_detail:
+            parts.append(f"誰と: {episode.who_detail}")
+        if episode.how_detail:
+            parts.append(f"どのように: {episode.how_detail}")
+
+    if episode.summary:
+        parts.append(f"まとめ: {episode.summary}")
+
+    return "\n".join(parts)
 
 
 @router.post("/{question_id}", response_model=schemas.EpisodeDetailResponse)
@@ -48,6 +82,41 @@ def create_episode_detail(
             setattr(existing, field, value)
         db.commit()
         db.refresh(existing)
+
+        # Update RAG embedding
+        content = _build_episode_content(existing)
+        if content:  # Only create embedding if there's actual content
+            embedding_vector = get_embedding(content)
+
+            # Find and update existing embedding or create new one
+            rag_embedding = (
+                db.query(models.RagEmbedding)
+                .filter(
+                    models.RagEmbedding.user_id == current_user.id,
+                    models.RagEmbedding.source_type == "episode_detail",
+                    models.RagEmbedding.source_id == existing.id,
+                )
+                .first()
+            )
+
+            if rag_embedding:
+                rag_embedding.content = content
+                rag_embedding.embedding = embedding_vector
+                rag_embedding.weight = question.weight
+            else:
+                rag_embedding = models.RagEmbedding(
+                    user_id=current_user.id,
+                    source_type="episode_detail",
+                    source_id=existing.id,
+                    embedding=embedding_vector,
+                    content=content,
+                    question_id=question_id,
+                    weight=question.weight,
+                )
+                db.add(rag_embedding)
+
+            db.commit()
+
         return existing
 
     # Create new
@@ -60,7 +129,22 @@ def create_episode_detail(
     db.commit()
     db.refresh(episode_detail)
 
-    # TODO: Add to RAG embeddings
+    # Add to RAG embeddings
+    content = _build_episode_content(episode_detail)
+    if content:  # Only create embedding if there's actual content
+        embedding_vector = get_embedding(content)
+
+        rag_embedding = models.RagEmbedding(
+            user_id=current_user.id,
+            source_type="episode_detail",
+            source_id=episode_detail.id,
+            embedding=embedding_vector,
+            content=content,
+            question_id=question_id,
+            weight=question.weight,
+        )
+        db.add(rag_embedding)
+        db.commit()
 
     return episode_detail
 
