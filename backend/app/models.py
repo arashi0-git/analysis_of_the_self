@@ -12,6 +12,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -97,14 +98,17 @@ class EpisodeDetail(Base):
     ai_feedback = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     user = relationship("User", back_populates="episode_details")
     question = relationship("Question", back_populates="episode_details")
 
-    __table_args__ = ({"extend_existing": True},)
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "question_id", name="uq_episode_detail_user_question"
+        ),
+        {"extend_existing": True},
+    )
 
 
 class LifeEvent(Base):
@@ -238,7 +242,8 @@ class RagEmbedding(Base):
         Text,
         CheckConstraint(
             "source_type IN ("
-            "'episode', 'insight', 'strength', 'memo', 'answer', 'episode_detail'"
+            "'episode', 'insight', 'strength', 'memo', 'answer', "
+            "'episode_detail'"
             ")"
         ),
         nullable=False,

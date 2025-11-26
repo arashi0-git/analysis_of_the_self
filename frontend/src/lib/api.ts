@@ -457,17 +457,41 @@ export interface QuestionList {
 
 // Get Questions
 export async function getQuestions(): Promise<QuestionList> {
-  const response = await fetch(`${API_BASE_URL}/questions`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${getToken()}`,
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || "Failed to get questions");
+  try {
+    const response = await fetch(`${API_BASE_URL}/questions`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = "Failed to get questions";
+      try {
+        const error = JSON.parse(errorText);
+        errorMessage = error.detail || errorMessage;
+      } catch {
+        console.error(
+          `Failed to get questions: ${response.status} ${errorText}`,
+        );
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(
+        "リクエストがタイムアウトしました。もう一度お試しください。",
+      );
+    }
+    throw error;
   }
-
-  return response.json();
 }

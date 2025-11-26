@@ -3,6 +3,7 @@ Seed script to populate questions table with new 7-question structure
 """
 
 import os
+import sys
 
 from app.models import Question
 from dotenv import load_dotenv
@@ -11,7 +12,11 @@ from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
 
+# Database setup
 DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    print("ERROR: DATABASE_URL environment variable is not set")
+    sys.exit(1)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -22,7 +27,8 @@ def seed_questions():
     db = SessionLocal()
 
     try:
-        # Delete existing questions
+        # WARNING: This will cascade delete all related user_answers
+        # and episode_details! Only run in development/staging.
         db.query(Question).delete()
         db.commit()
 

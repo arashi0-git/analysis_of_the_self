@@ -18,7 +18,10 @@ import {
 export default function EpisodeDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const questionId = params?.questionId as string;
+  const rawQuestionId = params?.questionId;
+  const questionId = Array.isArray(rawQuestionId)
+    ? rawQuestionId[0]
+    : rawQuestionId;
 
   const [question, setQuestion] = useState<Question | null>(null);
   const [originalAnswer, setOriginalAnswer] = useState<string>("");
@@ -36,8 +39,20 @@ export default function EpisodeDetailPage() {
     suggestions: string[];
   } | null>(null);
 
+  // Helper function to validate required content
+  const hasRequiredContent = (
+    method: MethodType,
+    detail: EpisodeDetailBase,
+  ): boolean => {
+    return method === "STAR"
+      ? !!(detail.situation || detail.task || detail.action || detail.result)
+      : !!(detail.what || detail.why);
+  };
+
   useEffect(() => {
     async function loadData() {
+      if (!questionId) return;
+
       try {
         setLoading(true);
         setError("");
@@ -76,9 +91,7 @@ export default function EpisodeDetailPage() {
       }
     }
 
-    if (questionId) {
-      loadData();
-    }
+    loadData();
   }, [questionId]);
 
   const handleMethodTypeChange = (type: MethodType) => {
@@ -92,15 +105,7 @@ export default function EpisodeDetailPage() {
 
   const handleGenerateSummary = async () => {
     // Validate that at least one field has content
-    const hasContent =
-      methodType === "STAR"
-        ? episodeDetail.situation ||
-          episodeDetail.task ||
-          episodeDetail.action ||
-          episodeDetail.result
-        : episodeDetail.what || episodeDetail.why;
-
-    if (!hasContent) {
+    if (!hasRequiredContent(methodType, episodeDetail)) {
       setError(
         "まとめを生成するには、少なくとも1つのフィールドに入力してください。",
       );
@@ -111,7 +116,7 @@ export default function EpisodeDetailPage() {
       setGeneratingSummary(true);
       setError("");
 
-      const result = await generateEpisodeSummary(questionId, {
+      const result = await generateEpisodeSummary(questionId!, {
         episode_detail: episodeDetail,
       });
 
@@ -128,15 +133,7 @@ export default function EpisodeDetailPage() {
 
   const handleGetFeedback = async () => {
     // Validate that at least one field has content
-    const hasContent =
-      methodType === "STAR"
-        ? episodeDetail.situation ||
-          episodeDetail.task ||
-          episodeDetail.action ||
-          episodeDetail.result
-        : episodeDetail.what || episodeDetail.why;
-
-    if (!hasContent) {
+    if (!hasRequiredContent(methodType, episodeDetail)) {
       setError(
         "フィードバックを取得するには、少なくとも1つのフィールドに入力してください。",
       );
@@ -147,7 +144,7 @@ export default function EpisodeDetailPage() {
       setGeneratingFeedback(true);
       setError("");
 
-      const result = await getEpisodeFeedback(questionId, {
+      const result = await getEpisodeFeedback(questionId!, {
         original_answer: originalAnswer,
         episode_detail: episodeDetail,
       });
@@ -167,15 +164,7 @@ export default function EpisodeDetailPage() {
 
   const handleSave = async () => {
     // Validate that at least one field has content
-    const hasContent =
-      methodType === "STAR"
-        ? episodeDetail.situation ||
-          episodeDetail.task ||
-          episodeDetail.action ||
-          episodeDetail.result
-        : episodeDetail.what || episodeDetail.why;
-
-    if (!hasContent) {
+    if (!hasRequiredContent(methodType, episodeDetail)) {
       setError("保存するには、少なくとも1つのフィールドに入力してください。");
       return;
     }
@@ -184,7 +173,7 @@ export default function EpisodeDetailPage() {
       setSaving(true);
       setError("");
 
-      await createOrUpdateEpisodeDetail(questionId, episodeDetail);
+      await createOrUpdateEpisodeDetail(questionId!, episodeDetail);
 
       // Redirect back to questionnaire page
       router.push("/questionnaire");
@@ -195,6 +184,15 @@ export default function EpisodeDetailPage() {
       setSaving(false);
     }
   };
+
+  // Early return if questionId is missing
+  if (!questionId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-red-500">無効なURLです</div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
