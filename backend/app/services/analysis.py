@@ -1,7 +1,7 @@
 import logging
 from uuid import UUID
 
-from app import crud, schemas
+from app import crud, models, schemas
 from app.prompts.analysis_prompts import (
     ANALYSIS_SYSTEM_PROMPT,
     ANALYSIS_USER_PROMPT_TEMPLATE,
@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 
 
-def analyze_user_answers(user_id: UUID, db: Session) -> schemas.AnalysisResult | None:
+def analyze_user_answers(user_id: UUID, db: Session) -> models.AnalysisResult | None:
     """
     Analyze user answers and save the result.
     """

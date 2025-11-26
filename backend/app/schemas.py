@@ -54,7 +54,7 @@ class UserAnswerSubmit(BaseModel):
     answers: list[UserAnswerCreate]
 
 
-class UpdateAnswerRequest(BaseModel):
+class SingleAnswerUpdate(BaseModel):
     answer_text: str = Field(..., min_length=1)
 
 
@@ -80,6 +80,18 @@ class AnalysisRequest(BaseModel):
 class AnalysisResponse(BaseModel):
     keywords: list[str]
     strengths: list[dict]
+    values: list[str]
+    summary: str
+
+
+class Strength(BaseModel):
+    strength: str
+    evidence: str
+
+
+class AnalysisResultContent(BaseModel):
+    keywords: list[str]
+    strengths: list[Strength]
     values: list[str]
     summary: str
 
