@@ -5,10 +5,16 @@ export const API_BASE_URL =
  * Get authentication token from localStorage.
  * CLIENT-SIDE ONLY: This function is designed for use in client components only.
  * Returns empty string in SSR/server environments.
+ *
+ * Note: Returns empty string instead of throwing to avoid breaking SSR.
+ * API calls will fail with 401 if token is missing, which is handled by
+ * individual API functions with user-friendly error messages.
+ *
  * @returns JWT token or empty string
  */
 function getToken(): string {
   if (typeof window === "undefined") {
+    // SSR環境では空文字を返す（API呼び出しはクライアントサイドでのみ実行される想定）
     return "";
   }
   return localStorage.getItem("token") || "";

@@ -276,10 +276,11 @@ export default function EpisodeDetailPage() {
           {methodType === "STAR" ? (
             <div className="space-y-4">
               <div>
-                <label className="block font-semibold mb-2">
+                <label htmlFor="situation" className="block font-semibold mb-2">
                   Situation（状況）
                 </label>
                 <textarea
+                  id="situation"
                   value={episodeDetail.situation || ""}
                   onChange={(e) =>
                     handleFieldChange("situation", e.target.value)
@@ -290,8 +291,11 @@ export default function EpisodeDetailPage() {
                 />
               </div>
               <div>
-                <label className="block font-semibold mb-2">Task（課題）</label>
+                <label htmlFor="task" className="block font-semibold mb-2">
+                  Task（課題）
+                </label>
                 <textarea
+                  id="task"
                   value={episodeDetail.task || ""}
                   onChange={(e) => handleFieldChange("task", e.target.value)}
                   className="w-full p-3 border border-border rounded-md"
@@ -300,10 +304,11 @@ export default function EpisodeDetailPage() {
                 />
               </div>
               <div>
-                <label className="block font-semibold mb-2">
+                <label htmlFor="action" className="block font-semibold mb-2">
                   Action（行動）
                 </label>
                 <textarea
+                  id="action"
                   value={episodeDetail.action || ""}
                   onChange={(e) => handleFieldChange("action", e.target.value)}
                   className="w-full p-3 border border-border rounded-md"
@@ -312,10 +317,11 @@ export default function EpisodeDetailPage() {
                 />
               </div>
               <div>
-                <label className="block font-semibold mb-2">
+                <label htmlFor="result" className="block font-semibold mb-2">
                   Result（結果）
                 </label>
                 <textarea
+                  id="result"
                   value={episodeDetail.result || ""}
                   onChange={(e) => handleFieldChange("result", e.target.value)}
                   className="w-full p-3 border border-border rounded-md"
@@ -327,8 +333,11 @@ export default function EpisodeDetailPage() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className="block font-semibold mb-2">What（何を）</label>
+                <label htmlFor="what" className="block font-semibold mb-2">
+                  What（何を）
+                </label>
                 <textarea
+                  id="what"
                   value={episodeDetail.what || ""}
                   onChange={(e) => handleFieldChange("what", e.target.value)}
                   className="w-full p-3 border border-border rounded-md"
@@ -337,8 +346,11 @@ export default function EpisodeDetailPage() {
                 />
               </div>
               <div>
-                <label className="block font-semibold mb-2">Why（なぜ）</label>
+                <label htmlFor="why" className="block font-semibold mb-2">
+                  Why（なぜ）
+                </label>
                 <textarea
+                  id="why"
                   value={episodeDetail.why || ""}
                   onChange={(e) => handleFieldChange("why", e.target.value)}
                   className="w-full p-3 border border-border rounded-md"
@@ -347,8 +359,14 @@ export default function EpisodeDetailPage() {
                 />
               </div>
               <div>
-                <label className="block font-semibold mb-2">When（いつ）</label>
+                <label
+                  htmlFor="when_detail"
+                  className="block font-semibold mb-2"
+                >
+                  When（いつ）
+                </label>
                 <textarea
+                  id="when_detail"
                   value={episodeDetail.when_detail || ""}
                   onChange={(e) =>
                     handleFieldChange("when_detail", e.target.value)
@@ -359,10 +377,14 @@ export default function EpisodeDetailPage() {
                 />
               </div>
               <div>
-                <label className="block font-semibold mb-2">
+                <label
+                  htmlFor="where_detail"
+                  className="block font-semibold mb-2"
+                >
                   Where（どこで）
                 </label>
                 <textarea
+                  id="where_detail"
                   value={episodeDetail.where_detail || ""}
                   onChange={(e) =>
                     handleFieldChange("where_detail", e.target.value)
@@ -373,8 +395,14 @@ export default function EpisodeDetailPage() {
                 />
               </div>
               <div>
-                <label className="block font-semibold mb-2">Who（誰と）</label>
+                <label
+                  htmlFor="who_detail"
+                  className="block font-semibold mb-2"
+                >
+                  Who（誰と）
+                </label>
                 <textarea
+                  id="who_detail"
                   value={episodeDetail.who_detail || ""}
                   onChange={(e) =>
                     handleFieldChange("who_detail", e.target.value)
@@ -385,10 +413,14 @@ export default function EpisodeDetailPage() {
                 />
               </div>
               <div>
-                <label className="block font-semibold mb-2">
+                <label
+                  htmlFor="how_detail"
+                  className="block font-semibold mb-2"
+                >
                   How（どのように）
                 </label>
                 <textarea
+                  id="how_detail"
                   value={episodeDetail.how_detail || ""}
                   onChange={(e) =>
                     handleFieldChange("how_detail", e.target.value)
@@ -414,12 +446,16 @@ export default function EpisodeDetailPage() {
               {generatingSummary ? "生成中..." : "🤖 AI自動生成"}
             </button>
           </div>
+          <label htmlFor="summary" className="sr-only">
+            まとめ
+          </label>
           <textarea
+            id="summary"
             value={episodeDetail.summary || ""}
             onChange={(e) => handleFieldChange("summary", e.target.value)}
             className="w-full p-3 border border-border rounded-md"
             rows={5}
-            placeholder="エピソードのまとめを入力してください（200-300文字推奨）"
+            placeholder="エピソードのまとめを入力してください..."
           />
         </div>
 
