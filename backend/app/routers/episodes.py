@@ -20,31 +20,73 @@ def _build_episode_content(episode: models.EpisodeDetail) -> str:
 
     if episode.method_type == "STAR":
         if episode.situation:
-            parts.append(f"状況: {episode.situation}")
+            parts.append(f"状況: {episode.situation.strip()}")
         if episode.task:
-            parts.append(f"課題: {episode.task}")
+            parts.append(f"課題: {episode.task.strip()}")
         if episode.action:
-            parts.append(f"行動: {episode.action}")
+            parts.append(f"行動: {episode.action.strip()}")
         if episode.result:
-            parts.append(f"結果: {episode.result}")
+            parts.append(f"結果: {episode.result.strip()}")
     else:  # 5W1H
         if episode.what:
-            parts.append(f"何を: {episode.what}")
+            parts.append(f"何を: {episode.what.strip()}")
         if episode.why:
-            parts.append(f"なぜ: {episode.why}")
+            parts.append(f"なぜ: {episode.why.strip()}")
         if episode.when_detail:
-            parts.append(f"いつ: {episode.when_detail}")
+            parts.append(f"いつ: {episode.when_detail.strip()}")
         if episode.where_detail:
-            parts.append(f"どこで: {episode.where_detail}")
+            parts.append(f"どこで: {episode.where_detail.strip()}")
         if episode.who_detail:
-            parts.append(f"誰と: {episode.who_detail}")
+            parts.append(f"誰と: {episode.who_detail.strip()}")
         if episode.how_detail:
-            parts.append(f"どのように: {episode.how_detail}")
+            parts.append(f"どのように: {episode.how_detail.strip()}")
 
     if episode.summary:
-        parts.append(f"まとめ: {episode.summary}")
+        parts.append(f"まとめ: {episode.summary.strip()}")
 
-    return "\n".join(parts)
+    return "\n".join(parts) if parts else ""
+
+
+def _upsert_episode_embedding(
+    db: Session,
+    user_id: UUID,
+    episode: models.EpisodeDetail,
+    question_id: UUID,
+    weight: float,
+) -> None:
+    """Create or update RAG embedding for episode detail"""
+    content = _build_episode_content(episode)
+    if not content:
+        return
+
+    embedding_vector = get_embedding(content)
+
+    # Find and update existing embedding or create new one
+    rag_embedding = (
+        db.query(models.RagEmbedding)
+        .filter(
+            models.RagEmbedding.user_id == user_id,
+            models.RagEmbedding.source_type == "episode_detail",
+            models.RagEmbedding.source_id == episode.id,
+        )
+        .first()
+    )
+
+    if rag_embedding:
+        rag_embedding.content = content
+        rag_embedding.embedding = embedding_vector
+        rag_embedding.weight = weight
+    else:
+        rag_embedding = models.RagEmbedding(
+            user_id=user_id,
+            source_type="episode_detail",
+            source_id=episode.id,
+            embedding=embedding_vector,
+            content=content,
+            question_id=question_id,
+            weight=weight,
+        )
+        db.add(rag_embedding)
 
 
 @router.post("/{question_id}", response_model=schemas.EpisodeDetailResponse)
@@ -76,77 +118,42 @@ def create_episode_detail(
         .first()
     )
 
-    if existing:
-        # Update existing
-        for field, value in episode_data.model_dump(exclude_unset=True).items():
-            setattr(existing, field, value)
-        db.commit()
-        db.refresh(existing)
+    try:
+        if existing:
+            # Update existing
+            for field, value in episode_data.model_dump(exclude_unset=True).items():
+                setattr(existing, field, value)
 
-        # Update RAG embedding
-        content = _build_episode_content(existing)
-        if content:  # Only create embedding if there's actual content
-            embedding_vector = get_embedding(content)
-
-            # Find and update existing embedding or create new one
-            rag_embedding = (
-                db.query(models.RagEmbedding)
-                .filter(
-                    models.RagEmbedding.user_id == current_user.id,
-                    models.RagEmbedding.source_type == "episode_detail",
-                    models.RagEmbedding.source_id == existing.id,
-                )
-                .first()
+            # Update RAG embedding
+            _upsert_episode_embedding(
+                db, current_user.id, existing, question_id, question.weight
             )
 
-            if rag_embedding:
-                rag_embedding.content = content
-                rag_embedding.embedding = embedding_vector
-                rag_embedding.weight = question.weight
-            else:
-                rag_embedding = models.RagEmbedding(
-                    user_id=current_user.id,
-                    source_type="episode_detail",
-                    source_id=existing.id,
-                    embedding=embedding_vector,
-                    content=content,
-                    question_id=question_id,
-                    weight=question.weight,
-                )
-                db.add(rag_embedding)
-
             db.commit()
+            db.refresh(existing)
+            return existing
 
-        return existing
-
-    # Create new
-    episode_detail = models.EpisodeDetail(
-        user_id=current_user.id,
-        question_id=question_id,
-        **episode_data.model_dump(),
-    )
-    db.add(episode_detail)
-    db.commit()
-    db.refresh(episode_detail)
-
-    # Add to RAG embeddings
-    content = _build_episode_content(episode_detail)
-    if content:  # Only create embedding if there's actual content
-        embedding_vector = get_embedding(content)
-
-        rag_embedding = models.RagEmbedding(
+        # Create new
+        episode_detail = models.EpisodeDetail(
             user_id=current_user.id,
-            source_type="episode_detail",
-            source_id=episode_detail.id,
-            embedding=embedding_vector,
-            content=content,
             question_id=question_id,
-            weight=question.weight,
+            **episode_data.model_dump(),
         )
-        db.add(rag_embedding)
-        db.commit()
+        db.add(episode_detail)
+        db.flush()  # Get ID without committing
 
-    return episode_detail
+        # Add to RAG embeddings
+        _upsert_episode_embedding(
+            db, current_user.id, episode_detail, question_id, question.weight
+        )
+
+        db.commit()
+        db.refresh(episode_detail)
+        return episode_detail
+
+    except Exception:
+        db.rollback()
+        raise
 
 
 @router.get("/{question_id}", response_model=schemas.EpisodeDetailResponse)
@@ -187,22 +194,7 @@ def get_episode_feedback(
 
     # Build episode detail text
     episode = request.episode_detail
-    if episode.method_type == "STAR":
-        detail_text = (
-            f"状況（Situation）: {episode.situation or '未記入'}\n"
-            f"課題（Task）: {episode.task or '未記入'}\n"
-            f"行動（Action）: {episode.action or '未記入'}\n"
-            f"結果（Result）: {episode.result or '未記入'}"
-        )
-    else:  # 5W1H
-        detail_text = (
-            f"何を（What）: {episode.what or '未記入'}\n"
-            f"なぜ（Why）: {episode.why or '未記入'}\n"
-            f"いつ（When）: {episode.when_detail or '未記入'}\n"
-            f"どこで（Where）: {episode.where_detail or '未記入'}\n"
-            f"誰と（Who）: {episode.who_detail or '未記入'}\n"
-            f"どのように（How）: {episode.how_detail or '未記入'}"
-        )
+    detail_text = _build_episode_content(episode) or "未記入"
 
     prompt = (
         f"あなたは就活支援の専門家です。以下のエピソードを{episode.method_type}法で"
@@ -264,22 +256,7 @@ def generate_summary(
         raise HTTPException(status_code=404, detail="Question not found")
 
     episode = request.episode_detail
-    if episode.method_type == "STAR":
-        detail_text = (
-            f"状況: {episode.situation or ''}\n"
-            f"課題: {episode.task or ''}\n"
-            f"行動: {episode.action or ''}\n"
-            f"結果: {episode.result or ''}"
-        )
-    else:
-        detail_text = (
-            f"何を: {episode.what or ''}\n"
-            f"なぜ: {episode.why or ''}\n"
-            f"いつ: {episode.when_detail or ''}\n"
-            f"どこで: {episode.where_detail or ''}\n"
-            f"誰と: {episode.who_detail or ''}\n"
-            f"どのように: {episode.how_detail or ''}"
-        )
+    detail_text = _build_episode_content(episode)
 
     prompt = (
         f"以下の{episode.method_type}法の各項目から、簡潔で分かりやすいまとめを"

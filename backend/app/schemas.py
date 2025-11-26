@@ -77,16 +77,16 @@ class AnalysisRequest(BaseModel):
     user_id: UUID
 
 
-class AnalysisResponse(BaseModel):
-    keywords: list[str]
-    strengths: list[dict]
-    values: list[str]
-    summary: str
-
-
 class Strength(BaseModel):
     strength: str
     evidence: str
+
+
+class AnalysisResponse(BaseModel):
+    keywords: list[str]
+    strengths: list[Strength]
+    values: list[str]
+    summary: str
 
 
 class AnalysisResultContent(BaseModel):

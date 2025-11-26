@@ -44,6 +44,10 @@ def analyze_user_answers(user_id: UUID, db: Session) -> models.AnalysisResult | 
         system_instruction=ANALYSIS_SYSTEM_PROMPT,
     )
 
+    if analysis_content is None:
+        logger.warning("LLM returned None for analysis")
+        return None
+
     # 5. Save result
     # Convert Pydantic model to dict for JSON storage
     result_data = analysis_content.model_dump()
