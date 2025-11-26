@@ -12,6 +12,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -56,6 +57,58 @@ class User(Base):
     )
     rag_embeddings = relationship(
         "RagEmbedding", back_populates="user", cascade="all, delete-orphan"
+    )
+    episode_details = relationship(
+        "EpisodeDetail", back_populates="user", cascade="all, delete-orphan"
+    )
+
+
+class EpisodeDetail(Base):
+    __tablename__ = "episode_details"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    question_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("questions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    method_type = Column(
+        Text, CheckConstraint("method_type IN ('STAR', '5W1H')"), nullable=False
+    )
+
+    # STAR fields
+    situation = Column(Text, nullable=True)
+    task = Column(Text, nullable=True)
+    action = Column(Text, nullable=True)
+    result = Column(Text, nullable=True)
+
+    # 5W1H fields
+    what = Column(Text, nullable=True)
+    why = Column(Text, nullable=True)
+    when_detail = Column(Text, nullable=True)
+    where_detail = Column(Text, nullable=True)
+    who_detail = Column(Text, nullable=True)
+    how_detail = Column(Text, nullable=True)
+
+    # Common fields
+    summary = Column(Text, nullable=True)
+    ai_feedback = Column(Text, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    user = relationship("User", back_populates="episode_details")
+    question = relationship("Question", back_populates="episode_details")
+
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "question_id", name="uq_episode_detail_user_question"
+        ),
+        {"extend_existing": True},
     )
 
 
@@ -188,7 +241,12 @@ class RagEmbedding(Base):
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
     source_type = Column(
         Text,
-        CheckConstraint("source_type IN ('episode', 'insight', 'strength', 'memo')"),
+        CheckConstraint(
+            "source_type IN ("
+            "'episode', 'insight', 'strength', 'memo', 'answer', "
+            "'episode_detail'"
+            ")"
+        ),
         nullable=False,
     )
     source_id = Column(UUID(as_uuid=True), nullable=True)
@@ -214,10 +272,14 @@ class Question(Base):
     question_text = Column(Text, nullable=False)
     display_order = Column(Integer, nullable=False)
     weight = Column(Float, default=1.0)
+    has_deep_dive = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     answers = relationship(
         "UserAnswer", back_populates="question", cascade="all, delete-orphan"
+    )
+    episode_details = relationship(
+        "EpisodeDetail", back_populates="question", cascade="all, delete-orphan"
     )
 
 

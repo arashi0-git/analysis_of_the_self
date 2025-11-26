@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, type FormEvent } from "react";
+import Link from "next/link";
 import type { UserAnswer, AnswerFeedbackResponse } from "@/lib/api";
 
 interface Question {
@@ -9,6 +10,7 @@ interface Question {
   question_text: string;
   display_order: number;
   weight: number;
+  has_deep_dive: boolean;
 }
 
 interface QuestionnaireFormProps {
@@ -260,8 +262,8 @@ export default function QuestionnaireForm({
             </div>
           )}
 
-          {/* AI Feedback button */}
-          {onGetFeedback && (
+          {/* AI Feedback button (for questions without deep-dive) */}
+          {onGetFeedback && !question.has_deep_dive && (
             <div className="mt-3">
               <button
                 type="button"
@@ -273,6 +275,18 @@ export default function QuestionnaireForm({
                   ? "AI分析中..."
                   : "💡 AI フィードバック"}
               </button>
+            </div>
+          )}
+
+          {/* Deep-dive button (for questions with deep-dive enabled) */}
+          {question.has_deep_dive && (
+            <div className="mt-3">
+              <Link
+                href={`/episode/${question.id}`}
+                className="inline-block rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90 transition-colors"
+              >
+                🔍 エピソードを深堀する
+              </Link>
             </div>
           )}
 

@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
@@ -29,6 +31,7 @@ class QuestionBase(BaseModel):
     question_text: str
     display_order: int
     weight: float = 1.0
+    has_deep_dive: bool = False
 
 
 class Question(QuestionBase):
@@ -51,14 +54,16 @@ class UserAnswerSubmit(BaseModel):
     answers: list[UserAnswerCreate]
 
 
-class SingleAnswerUpdate(BaseModel):
+class UpdateAnswerRequest(BaseModel):
     answer_text: str = Field(..., min_length=1)
 
 
-class UserAnswer(UserAnswerCreate):
+class UserAnswer(BaseModel):
     id: UUID
     user_id: UUID
-    embedding_id: UUID | None
+    question_id: UUID
+    answer_text: str
+    embedding_id: Optional[UUID] = None
 
     class Config:
         from_attributes = True
@@ -68,39 +73,21 @@ class UserAnswersResponse(BaseModel):
     answers: list[UserAnswer]
 
 
-class AnalysisResult(BaseModel):
-    id: UUID
+class AnalysisRequest(BaseModel):
     user_id: UUID
-    analysis_type: str
-    result_data: dict
-
-    class Config:
-        from_attributes = True
 
 
-class StrengthItem(BaseModel):
-    strength: str
-    evidence: str
-    confidence: float
-
-
-class AnalysisResultContent(BaseModel):
+class AnalysisResponse(BaseModel):
     keywords: list[str]
-    strengths: list[StrengthItem]
+    strengths: list[dict]
     values: list[str]
     summary: str
 
 
-class AnalysisResponse(AnalysisResultContent):
-    pass
-
-
 class UserRegister(BaseModel):
     email: EmailStr
-    password: str = Field(
-        ..., min_length=8, description="Password must be at least 8 characters"
-    )
-    name: str
+    password: str = Field(..., min_length=8)
+    name: str = Field(..., min_length=1)
 
 
 class UserLogin(BaseModel):
@@ -113,6 +100,10 @@ class Token(BaseModel):
     token_type: str
 
 
+class TokenData(BaseModel):
+    email: Optional[str] = None
+
+
 class UserResponse(BaseModel):
     id: UUID
     email: str
@@ -122,7 +113,6 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
-# AI Feedback schemas
 class AnswerFeedbackRequest(BaseModel):
     answer_text: str = Field(..., min_length=1)
 
@@ -130,3 +120,51 @@ class AnswerFeedbackRequest(BaseModel):
 class AnswerFeedbackResponse(BaseModel):
     feedback: str
     suggestions: list[str]
+
+
+# Episode Detail Schemas
+class EpisodeDetailBase(BaseModel):
+    method_type: Literal["STAR", "5W1H"]
+    # STAR fields
+    situation: Optional[str] = None
+    task: Optional[str] = None
+    action: Optional[str] = None
+    result: Optional[str] = None
+    # 5W1H fields
+    what: Optional[str] = None
+    why: Optional[str] = None
+    when_detail: Optional[str] = None
+    where_detail: Optional[str] = None
+    who_detail: Optional[str] = None
+    how_detail: Optional[str] = None
+    # Common
+    summary: Optional[str] = None
+
+
+class EpisodeDetailCreate(EpisodeDetailBase):
+    pass
+
+
+class EpisodeDetailUpdate(EpisodeDetailBase):
+    pass
+
+
+class EpisodeDetailResponse(EpisodeDetailBase):
+    id: UUID
+    user_id: UUID
+    question_id: UUID
+    ai_feedback: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class EpisodeFeedbackRequest(BaseModel):
+    original_answer: str
+    episode_detail: EpisodeDetailBase
+
+
+class EpisodeSummaryRequest(BaseModel):
+    episode_detail: EpisodeDetailBase
