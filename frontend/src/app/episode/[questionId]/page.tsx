@@ -46,7 +46,14 @@ export default function EpisodeDetailPage() {
   ): boolean => {
     return method === "STAR"
       ? !!(detail.situation || detail.task || detail.action || detail.result)
-      : !!(detail.what || detail.why);
+      : !!(
+          detail.what ||
+          detail.why ||
+          detail.when_detail ||
+          detail.where_detail ||
+          detail.who_detail ||
+          detail.how_detail
+        );
   };
 
   useEffect(() => {

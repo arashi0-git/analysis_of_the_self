@@ -23,7 +23,22 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def seed_questions():
-    """Seed the database with new 7 questions"""
+    """Seed the database with initial questions."""
+    # Environment protection: prevent running in production
+    environment = os.getenv("ENVIRONMENT", "development")
+    if environment.lower() == "production":
+        print("ERROR: This script cannot be run in production environment")
+        print("It will delete all existing questions and related data.")
+        sys.exit(1)
+
+    # Additional confirmation for safety
+    print("WARNING: This will delete all existing questions and related data!")
+    print(f"Current environment: {environment}")
+    confirmation = input("Type 'yes' to continue: ")
+    if confirmation.lower() != "yes":
+        print("Operation cancelled.")
+        sys.exit(0)
+
     db = SessionLocal()
 
     try:

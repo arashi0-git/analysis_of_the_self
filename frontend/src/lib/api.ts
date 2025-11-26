@@ -1,7 +1,12 @@
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001";
 
-// Helper function to get token from localStorage
+/**
+ * Get authentication token from localStorage.
+ * CLIENT-SIDE ONLY: This function is designed for use in client components only.
+ * Returns empty string in SSR/server environments.
+ * @returns JWT token or empty string
+ */
 function getToken(): string {
   if (typeof window === "undefined") {
     return "";

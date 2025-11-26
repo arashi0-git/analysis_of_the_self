@@ -98,8 +98,9 @@ class EpisodeDetail(Base):
     ai_feedback = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
     user = relationship("User", back_populates="episode_details")
     question = relationship("Question", back_populates="episode_details")
 
