@@ -298,7 +298,7 @@ export async function createOrUpdateEpisodeDetail(
       throw new Error(errorMessage);
     }
 
-    return response.json();
+    return await response.json();
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
@@ -344,7 +344,7 @@ export async function getEpisodeDetail(
       throw new Error(errorMessage);
     }
 
-    return response.json();
+    return await response.json();
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
@@ -392,7 +392,7 @@ export async function getEpisodeFeedback(
       throw new Error(errorMessage);
     }
 
-    return response.json();
+    return await response.json();
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {
@@ -440,7 +440,7 @@ export async function generateEpisodeSummary(
       throw new Error(errorMessage);
     }
 
-    return response.json();
+    return await response.json();
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === "AbortError") {

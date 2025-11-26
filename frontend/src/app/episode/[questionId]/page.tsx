@@ -472,16 +472,16 @@ export default function EpisodeDetailPage() {
             </button>
           </div>
           {aiFeedback && (
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm text-blue-900 whitespace-pre-wrap mb-4">
+            <div className="bg-muted p-4 rounded-lg">
+              <p className="text-sm text-foreground whitespace-pre-wrap mb-4">
                 {aiFeedback.feedback}
               </p>
               {aiFeedback.suggestions.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-blue-200">
-                  <h3 className="text-sm font-semibold text-blue-900 mb-2">
+                <div className="mt-4 pt-4 border-t border-border">
+                  <h3 className="text-sm font-semibold text-foreground mb-2">
                     改善提案:
                   </h3>
-                  <ul className="list-disc list-inside text-sm text-blue-800 space-y-1">
+                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
                     {aiFeedback.suggestions.map((suggestion, index) => (
                       <li key={index}>{suggestion}</li>
                     ))}
@@ -494,7 +494,10 @@ export default function EpisodeDetailPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6">
+          <div
+            role="alert"
+            className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6"
+          >
             {error}
           </div>
         )}
