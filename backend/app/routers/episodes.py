@@ -2,6 +2,7 @@
 Episode detail endpoints for STAR/5W1H deep-dive functionality
 """
 
+import logging
 from uuid import UUID
 
 from app import models, schemas
@@ -11,10 +12,14 @@ from app.services.embedding import get_embedding
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/episodes", tags=["episodes"])
 
 
-def _build_episode_content(episode: models.EpisodeDetail) -> str:
+def _build_episode_content(
+    episode: models.EpisodeDetail | schemas.EpisodeDetailBase,
+) -> str:
     """Build content string from episode detail for embedding"""
     parts = []
 
@@ -61,11 +66,8 @@ def _upsert_episode_embedding(
 
     try:
         embedding_vector = get_embedding(content)
-    except Exception as e:
-        import logging
-
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to generate embedding for episode {episode.id}: {e}")
+    except Exception:
+        logger.exception("Failed to generate embedding for episode %s", episode.id)
         return  # Skip embedding but don't fail the entire operation
 
     # Find and update existing embedding or create new one
@@ -161,8 +163,6 @@ def create_episode_detail(
     except Exception:
         db.rollback()
         raise
-    else:
-        return episode_detail
 
 
 @router.get("/{question_id}", response_model=schemas.EpisodeDetailResponse)
@@ -265,7 +265,7 @@ def generate_summary(
         raise HTTPException(status_code=404, detail="Question not found")
 
     episode = request.episode_detail
-    detail_text = _build_episode_content(episode)
+    detail_text = _build_episode_content(episode) or "未記入"
 
     prompt = (
         f"以下の{episode.method_type}法の各項目から、簡潔で分かりやすいまとめを"
