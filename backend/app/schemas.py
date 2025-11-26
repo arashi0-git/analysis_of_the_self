@@ -82,18 +82,15 @@ class Strength(BaseModel):
     evidence: str
 
 
-class AnalysisResponse(BaseModel):
-    keywords: list[str]
-    strengths: list[Strength]
-    values: list[str]
-    summary: str
-
-
 class AnalysisResultContent(BaseModel):
     keywords: list[str]
     strengths: list[Strength]
     values: list[str]
     summary: str
+
+
+# Alias for API response
+AnalysisResponse = AnalysisResultContent
 
 
 class UserRegister(BaseModel):

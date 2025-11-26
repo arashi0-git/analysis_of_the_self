@@ -59,7 +59,14 @@ def _upsert_episode_embedding(
     if not content:
         return
 
-    embedding_vector = get_embedding(content)
+    try:
+        embedding_vector = get_embedding(content)
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to generate embedding for episode {episode.id}: {e}")
+        return  # Skip embedding but don't fail the entire operation
 
     # Find and update existing embedding or create new one
     rag_embedding = (
@@ -154,6 +161,8 @@ def create_episode_detail(
     except Exception:
         db.rollback()
         raise
+    else:
+        return episode_detail
 
 
 @router.get("/{question_id}", response_model=schemas.EpisodeDetailResponse)
