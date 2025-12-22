@@ -12,6 +12,9 @@ RAG（Retrieval-Augmented Generation）とAIを活用した、自己分析・就
 
 <img width="1469" height="789" alt="image" src="https://github.com/user-attachments/assets/d574ee95-a5bf-452b-96f2-4b87849114d8" />
 
+### 深堀りページ
+<img width="1470" height="792" alt="image" src="https://github.com/user-attachments/assets/ba521701-b022-408e-bbdf-024bf5404e86" />
+
 ### 分析結果ページ
 
 <img width="1470" height="795" alt="image" src="https://github.com/user-attachments/assets/06ef8f50-6398-476c-a2e0-b120119c7026" />
