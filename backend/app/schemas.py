@@ -54,7 +54,7 @@ class UserAnswerSubmit(BaseModel):
     answers: list[UserAnswerCreate]
 
 
-class UpdateAnswerRequest(BaseModel):
+class SingleAnswerUpdate(BaseModel):
     answer_text: str = Field(..., min_length=1)
 
 
@@ -77,11 +77,20 @@ class AnalysisRequest(BaseModel):
     user_id: UUID
 
 
-class AnalysisResponse(BaseModel):
+class Strength(BaseModel):
+    strength: str
+    evidence: str
+
+
+class AnalysisResultContent(BaseModel):
     keywords: list[str]
-    strengths: list[dict]
+    strengths: list[Strength]
     values: list[str]
     summary: str
+
+
+# Alias for API response
+AnalysisResponse = AnalysisResultContent
 
 
 class UserRegister(BaseModel):
